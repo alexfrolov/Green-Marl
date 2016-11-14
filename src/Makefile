@@ -36,6 +36,7 @@ HEADERS =  \
     gm_ind_opt.h\
     gm_transform_helper.h\
     gm_code_writer.h\
+    gm_backend_charm.h\
 
 SRCS1 = gm_grammer.tab.c gm_lex.c  
 
@@ -153,9 +154,17 @@ SRCS2 =\
        gm_giraph_gen_vertex.cc\
        gm_giraph_lib.cc\
        gm_giraph_lib_random_write.cc\
+			 gm_charm_gen.cc\
+			 gm_charm_gen_master.cc\
+			 gm_charm_gen_vertex.cc\
+			 gm_charm_gen_steps.cc\
+			 gm_charm_lib.cc\
+			 gm_charm_analyse_symbols.cc\
+			 gm_charm_opt.cc\
+			 gm_charm_gen_aux.cc\
 
 # where to find source codes
-SRC_DIRS = common parse backend_cpp backend_gps backend_giraph frontend opt
+SRC_DIRS = common parse backend_cpp backend_gps backend_giraph backend_charm frontend opt
 
 ifeq ($(COMPILE_JAVA_BACKEND),1)
 	CFLAGS += -DCOMPILE_JAVA_BACKEND

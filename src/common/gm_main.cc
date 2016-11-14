@@ -22,6 +22,7 @@
 #include "gm_backend_cpp.h"
 #include "gm_backend_gps.h"
 #include "gm_backend_giraph.h"
+#include "gm_backend_charm.h"
 #ifdef COMPILE_JAVA_BACKEND
 #include "gm_backend_java.h"
 #endif
@@ -32,6 +33,7 @@ gm_frontend FE;
 gm_cpp_gen CPP_BE;  // CPP Backend
 gm_gps_gen GPS_BE;  // GPS Backend
 gm_giraph_gen GIRAPH_BE;  // Giraph Backend
+gm_charm_gen CHARM_BE;
 gm_gps_gen* PREGEL_BE; // for debug
 #ifdef COMPILE_JAVA_BACKEND
 gm_java_gen JAVA_BE; // Java Backend
@@ -192,7 +194,10 @@ int main(int argc, char** argv) {
 		JAVA_BE.set_target_par(gm_is_same_string(name, "java_par"));
 		BACK_END = &JAVA_BE;
 #endif
-    } else {
+		} else if (gm_is_same_string(name, "charm")) {
+        BACK_END = &CHARM_BE;
+        OPTIONS.set_arg_bool(GMARGFLAG_FLIP_PULL, true);
+		} else {
         printf("Unsupported target = %s\n", name);
         return 0;
     }

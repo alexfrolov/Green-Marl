@@ -12,65 +12,6 @@
 // Create a flat table, for the generation of fields in master/vertex class
 //-----------------------------------------------------------------------------------
 
-class gps_flat_symbol_t : public gm_apply
-{
-public:
-    gps_flat_symbol_t(std::set<gm_symtab_entry*>& s, std::set<gm_symtab_entry*>& p, std::set<gm_symtab_entry*>& e) :
-            scalar(s), prop(p), edge_prop(e) {
-        set_for_symtab(true);
-    }
-
-    virtual bool apply(gm_symtab_entry* sym, int symtab_type) {
-        ast_extra_info* info = sym->find_info(GPS_TAG_BB_USAGE);
-        if (info == NULL) return true; // no information
-
-        gps_syminfo* syminfo = (gps_syminfo*) info;
-        if (syminfo->is_scalar()) {
-            // ignore iterator and graph
-            if (sym->getType()->is_graph() || sym->getType()->is_node_edge_iterator()) {
-                return true;
-            }
-
-            if (symtab_type == GM_SYMTAB_ARG) {
-                syminfo->set_is_argument(true);
-                scalar.insert(sym);
-            //} else if (syminfo->is_used_in_multiple_BB() && syminfo->is_scoped_global()) {
-            } else if (syminfo->is_scoped_global()) {
-                scalar.insert(sym);
-            } else {
-                // temporary variables. can be ignored
-            }
-        } else {
-            if (sym->getType()->is_node_property()) {
-                prop.insert(sym);
-            } else if (sym->getType()->is_edge_property()) {
-                edge_prop.insert(sym);
-            } else {
-                printf("sym = %s\n", sym->getId()->get_genname());
-                assert(false);
-            }
-
-            /*
-             if (syminfo->is_argument())
-             {
-             prop.insert(sym);
-             }
-             else if (syminfo->is_used_in_multiple_BB()){
-             prop.insert(sym);
-             } else {
-             //assert(false);
-             prop.insert(sym);
-             }
-             */
-        }
-
-        return true;
-    }
-private:
-    std::set<gm_symtab_entry*>& scalar;
-    std::set<gm_symtab_entry*>& prop;
-    std::set<gm_symtab_entry*>& edge_prop;
-};
 
 static int comp_start_byte(std::set<gm_symtab_entry*>& prop) {
     int byte_begin = 0;
