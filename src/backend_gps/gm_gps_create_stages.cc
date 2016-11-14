@@ -357,10 +357,10 @@ void gm_gps_opt_create_ebb::process(ast_procdef* proc) {
     gm_traverse_sents_pre_post(proc, &T2);
 
     // Debug Print
-    /*
+    
      gps_bb_print_all(T2.get_entry()); // return or of has_changed
-     exit(0);
-     */
+   //  exit(0);
+    
 
     //--------------------------------
     // STEP 3:

@@ -98,6 +98,12 @@ void gm_gps_opt_split_comm_ebb::process(ast_procdef* p) {
     gm_gps_beinfo* info = (gm_gps_beinfo*) FE.get_backend_info(p);
     gps_bb* entry = info->get_entry_basic_block();
 
+		printf("=====================================================\n");
+		printf("gm_gps_opt_split_comm_ebb (before)\n");
+
+		gps_bb_print_all(entry);
+		//assert(false);
+
     //-------------------------------------------
     // find Basic Blocks that contain nested communication
     //-------------------------------------------
@@ -111,12 +117,16 @@ void gm_gps_opt_split_comm_ebb::process(ast_procdef* p) {
     ///  BB => 
     //   BB1 (send) -> seq -> BB2 (receive) 
     //-------------------------------------------
-    std::set<gps_bb*>::iterator I;
+    /*std::set<gps_bb*>::iterator I;
     for (I = BB_list.begin(); I != BB_list.end(); I++) {
         gps_bb* BB = *I;
         gps_bb* BB2 = split_vertex_BB(BB, info);
 
-    }
+    }*/
+
+		printf("=====================================================\n");
+		printf("gm_gps_opt_split_comm_ebb (after)\n");
+		gps_bb_print_all(entry);
 }
 
 //    [prev -> BB -> next] ==>

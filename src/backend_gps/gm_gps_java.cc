@@ -117,6 +117,7 @@ void gm_gps_gen::generate_sent_block(ast_sentblock* sb, bool need_brace) {
     }
 
     for (i = sents.begin(); i != sents.end(); i++) {
+			Body.pushln("--sent--");
         ast_sent* s = *i;
         generate_sent(s);
     }
@@ -359,6 +360,7 @@ void gm_gps_gen::generate_sent_reduce_assign(ast_assign* a) {
 }
 
 void gm_gps_gen::generate_sent_assign(ast_assign *a) {
+			Body.pushln("--generate_sent_assign--");
     // normal assign
     if (is_master_generate()) {
         this->gm_code_generator::generate_sent_assign(a);
@@ -371,6 +373,7 @@ void gm_gps_gen::generate_sent_assign(ast_assign *a) {
     }
 
     if (is_receiver_generate()) {
+			Body.pushln("--generate_sent_assign-- (1)");
         if (!a->is_target_scalar() && a->get_lhs_field()->get_first()->getSymInfo()->find_info_bool(GPS_FLAG_EDGE_DEFINED_INNER)) {
             return;
         }
@@ -379,6 +382,8 @@ void gm_gps_gen::generate_sent_assign(ast_assign *a) {
             return;
         }
     }
+		
+			Body.pushln("--generate_sent_assign-- (2)");
 
     // vertex or receiver generate
     if (a->find_info_ptr(GPS_FLAG_SENT_BLOCK_FOR_RANDOM_WRITE_ASSIGN) != NULL) {
@@ -436,6 +441,7 @@ void gm_gps_gen::generate_sent_if(ast_if* iff)
 }
 
 void gm_gps_gen::generate_sent_foreach(ast_foreach* fe) {
+			Body.pushln("--generate_sent_foreach--");
     // must be a sending foreach
     if (fe->find_info_bool(GPS_FLAG_IS_INNER_LOOP)) {
     

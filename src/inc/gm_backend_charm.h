@@ -122,7 +122,8 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_vertex();
 		virtual void generate_vertex_entry_methods();
 		virtual void generate_vertex_entry_method(gm_gps_basic_block *b);
-		virtual void generate_vertex_entry_method_args(gm_gps_basic_block *b);
+		virtual void generate_vertex_entry_method_args_scala(gm_gps_basic_block *b);
+		virtual void generate_vertex_entry_method_args_recv(gm_gps_basic_block *b);
 		virtual void generate_edge_list(ast_procdef *proc);
 		virtual void generate_vertex_properties(ast_procdef *proc);
 		virtual void generate_default_ctor(char *name);

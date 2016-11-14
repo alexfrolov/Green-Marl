@@ -229,17 +229,22 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		Body.pushln(";");
 	}
 
+	gm_gps_basic_block *b = (gm_gps_basic_block *)fe->get_basic_block();
+
 	if (!need_separate_message) {
 		if (is_in_neighbors) {
 			assert(false);
 			sprintf(temp, "sendMessages(%s.%s, _msg);", STATE_SHORT_CUT, GPS_REV_NODE_ID);
 			Body.pushln(temp);
 		} else {
-			Body.pushln("thisProxy[_e->v].entry_method_bb??(_msg);");
+			sprintf(temp, "thisProxy[_e->v].entry_method_bb%d_recv(_msg);", b->get_id());
+			Body.pushln(temp);
 		}
 		Body.pushln("}");
 	} else {
-		Body.pushln("thisProxy[_e->v].entry_method_bb??(_msg);");
+		//Body.pushln("thisProxy[_e->v].entry_method_bb??(_msg);");
+			sprintf(temp, "thisProxy[_e->v].entry_method_bb%d_recv(_msg);", b->get_id());
+			Body.pushln(temp);
 		if (sents_after_message.size() > 0) {
 			Body.NL();
 			std::list<ast_sent*>::iterator I;

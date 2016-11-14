@@ -11,6 +11,8 @@
 #include <string>
 #include "gm_frontend_api.h"
 
+class gm_basic_block;
+
 extern const char* gm_get_type_string(int i);
 
 enum AST_NODE_TYPE
@@ -1004,7 +1006,7 @@ class ast_sent: public ast_node
 {
 protected:
     ast_sent(AST_NODE_TYPE y) :
-            ast_node(y), eline(0), _par(false) {
+            ast_node(y), eline(0), _par(false), bb(NULL) {
     }
 
     // save original empty lines before this sentence
@@ -1034,14 +1036,30 @@ public:
         _par = b;
     }
 
+		virtual void set_basic_block(gm_basic_block *b) {
+			//assert(bb == NULL);
+			bb = b;
+		}
+
+		virtual gm_basic_block *get_basic_block() {
+			ast_sent *t = this;
+			while (!t->bb)
+			 	if (t->get_parent() != NULL)
+					t = (ast_sent *)t->get_parent(); // TODO: check the safety 
+				else
+					break;
+			assert(t->bb);
+			return t->bb;
+		}
+
 private:
     ast_sent() :
-            ast_node(AST_SENT), eline(0), _par(false) {
+            ast_node(AST_SENT), eline(0), _par(false), bb(NULL) {
     }
 
     int eline;
     bool _par;
-
+		gm_basic_block *bb;
 };
 
 extern const char* gm_get_nodetype_string(int t);

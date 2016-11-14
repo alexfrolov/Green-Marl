@@ -44,8 +44,8 @@ void gm_charm_gen::init_opt_steps() {
 
 	l.push_back(GM_COMPILE_STEP_FACTORY(gm_gps_opt_create_ebb)); // from gps backend!!!
 	l.push_back(GM_COMPILE_STEP_FACTORY(gm_gps_opt_split_comm_ebb));            // split communicating every BB into two
-	l.push_back(GM_COMPILE_STEP_FACTORY(gm_gps_opt_merge_ebb_again));           // Merging Ebbs
-	l.push_back(GM_COMPILE_STEP_FACTORY(gm_gps_opt_merge_ebb_intra_loop));      // Merging Ebbs Inside Loops
+	//l.push_back(GM_COMPILE_STEP_FACTORY(gm_gps_opt_merge_ebb_again));           // Merging Ebbs
+	//l.push_back(GM_COMPILE_STEP_FACTORY(gm_gps_opt_merge_ebb_intra_loop));      // Merging Ebbs Inside Loops
 }
 
 bool gm_charm_gen::do_local_optimize() {

@@ -65,21 +65,17 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	int type = b->get_type();
 
 	char temp[1024];
-	sprintf(temp, "// basic block id%d ", b->get_id()); 
-	sprintf(temp, "void entry_method_bb%d (", b->get_id());
-	Body.push(temp);
-	// generate entry method parameters
-	generate_vertex_entry_method_args(b);
-	Body.pushln(") {");
-	// generate entry method body
 
-	assert(type == GM_GPS_BBTYPE_BEGIN_VERTEX);
-	bool is_conditional = b->find_info_bool(GPS_FLAG_IS_INTRA_MERGED_CONDITIONAL);
-	char cond_var[128];
-	if (is_conditional) sprintf(cond_var, "%s%d", GPS_INTRA_MERGE_IS_FIRST, b->find_info_int(GPS_INT_INTRA_MERGED_CONDITIONAL_NO));
-
+	//---------------------------------------------------
+	// Generate recieve entry method if needed
+	//---------------------------------------------------
 	if (b->has_receiver()) {
-		Body.pushln("// receiver block");
+
+		sprintf(temp, "void entry_method_bb%d_recv (", b->get_id());
+		Body.push(temp);
+		// generate entry method parameters
+		generate_vertex_entry_method_args_recv(b);
+		Body.pushln(") {");
 		set_receiver_generate(true); 
 
 		std::list<gm_gps_comm_unit>& R = b->get_receivers();
@@ -138,10 +134,28 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 		}
 
 		set_receiver_generate(false); 
+
+		Body.pushln("}");
 	}
 
+	//---------------------------------------------------
+	// Generate main entry method 
+	//---------------------------------------------------
+
+	//sprintf(temp, "// basic block id%d ", b->get_id()); 
+	sprintf(temp, "void entry_method_bb%d (", b->get_id());
+	Body.push(temp);
+	// generate entry method parameters
+	generate_vertex_entry_method_args_scala(b);
+	Body.pushln(") {");
+	// generate entry method body
+
+	assert(type == GM_GPS_BBTYPE_BEGIN_VERTEX);
+	bool is_conditional = b->find_info_bool(GPS_FLAG_IS_INTRA_MERGED_CONDITIONAL);
+	char cond_var[128];
+	if (is_conditional) sprintf(cond_var, "%s%d", GPS_INTRA_MERGE_IS_FIRST, b->find_info_int(GPS_INT_INTRA_MERGED_CONDITIONAL_NO));
+
 	if (b->get_num_sents() > 0) {
-		Body.pushln("// main block");
 		//assert (b->get_num_sents() == 1);
 		gm_baseindent_reproduce(2);
 		Body.pushln("/*------");
@@ -180,11 +194,10 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 		}
 	}
 
-
 	Body.pushln("}");
 }
 
-void gm_charm_gen::generate_vertex_entry_method_args(gm_gps_basic_block *b) {
+void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b) {
 	int cnt = 0;
 	// load scalar variable
 	std::map<gm_symtab_entry*, gps_syminfo*>& symbols = b->get_symbols();
@@ -211,58 +224,52 @@ void gm_charm_gen::generate_vertex_entry_method_args(gm_gps_basic_block *b) {
 			}
 		} 
 	}
+}
 
-	if (b->find_info_bool(GPS_FLAG_IS_INTRA_MERGED_CONDITIONAL)) {
-		char temp[1024];
-		sprintf(temp, "%s%d", GPS_INTRA_MERGE_IS_FIRST, b->find_info_int(GPS_INT_INTRA_MERGED_CONDITIONAL_NO));
-		printf("get_lib()->generate_receive_isFirst_vertex(temp, Body);\n");
-		//assert(false);
-	}
-
+void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b) {
+	assert(b->has_receiver());
+	int cnt = 0;
 	// generate parameters from communicating symbols
-	if (b->has_receiver()) {
-		Body.push("\n/*receivers:*/ ");
-		gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	Body.push("\n/*receivers:*/ ");
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 
-		std::list<gm_gps_comm_unit>& R = b->get_receivers();
-		std::list<gm_gps_comm_unit>::iterator I;
-		for (I = R.begin(); I != R.end(); I++) {
-			gm_gps_comm_unit U = *I;
-			std::list<gm_gps_communication_symbol_info>& LIST = info->get_all_communication_symbols(U);
+	std::list<gm_gps_comm_unit>& R = b->get_receivers();
+	std::list<gm_gps_comm_unit>::iterator I;
+	for (I = R.begin(); I != R.end(); I++) {
+		gm_gps_comm_unit U = *I;
+		std::list<gm_gps_communication_symbol_info>& LIST = info->get_all_communication_symbols(U);
 
-			if (U.get_type() == GPS_COMM_NESTED) {
-				ast_foreach* fe = U.fe;
-				assert(fe!=NULL);
+		if (U.get_type() == GPS_COMM_NESTED) {
+			ast_foreach* fe = U.fe;
+			assert(fe!=NULL);
 
-				std::list<gm_gps_communication_symbol_info>::iterator J;
-				for (J = LIST.begin(); J != LIST.end(); J++) {
-					gm_gps_communication_symbol_info& SYM = *J;
-					gm_symtab_entry * e = SYM.symbol;
+			std::list<gm_gps_communication_symbol_info>::iterator J;
+			for (J = LIST.begin(); J != LIST.end(); J++) {
+				gm_gps_communication_symbol_info& SYM = *J;
+				gm_symtab_entry * e = SYM.symbol;
 
-					if (cnt > 1) 
-						Body.push(",");
+				if (cnt > 1) 
+					Body.push(",");
 
-					// check it once again later
-					//if (e->getType()->is_property() || e->getType()->is_node_compatible() || e->getType()->is_edge_compatible() || !is_symbol_defined_in_bb(b, e)) {
-						const char* str = get_type_string(SYM.gm_type);
-						Body.push(str);
-						Body.SPC();
-					//}
-					if (e->getType()->is_property()) {
-						assert(false);
-						//Body.pushln("generate_vertex_prop_access_remote_lhs(e->getId(), Body);");
-					} else {
-						Body.push(e->getId()->get_genname());
-						cnt++;
-					}
+				// check it once again later
+				//if (e->getType()->is_property() || e->getType()->is_node_compatible() || e->getType()->is_edge_compatible() || !is_symbol_defined_in_bb(b, e)) {
+				const char* str = get_type_string(SYM.gm_type);
+				Body.push(str);
+				Body.SPC();
+				//}
+				if (e->getType()->is_property()) {
+					assert(false);
+					//Body.pushln("generate_vertex_prop_access_remote_lhs(e->getId(), Body);");
+				} else {
+					Body.push(e->getId()->get_genname());
+					cnt++;
 				}
-
-			} else {
-				assert(false);
 			}
+
+		} else {
+			assert(false);
 		}
 	}
-
 }
 
 void gm_charm_gen::generate_edge_list(ast_procdef *proc) {
