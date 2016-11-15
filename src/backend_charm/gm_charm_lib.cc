@@ -135,7 +135,7 @@ const char* gm_charm_lib::get_message_field_var_name(int gm_type, int idx) {
 void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) {
 	char temp[1024];
 	char str_buf[1024 * 8];
-
+	gm_gps_basic_block *b = (gm_gps_basic_block *)fe->get_basic_block();
 	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 
 	int m_type = (fe == NULL) ? GPS_COMM_INIT : GPS_COMM_NESTED;
@@ -150,6 +150,7 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 	bool is_in_neighbors = (fe != NULL) && (gm_is_in_nbr_node_iteration(fe->get_iter_type()));
 
 	if (!need_separate_message) {
+		assert(false);
 		Body.pushln("// Sending messages to all neighbors (if there is a neighbor)");
 		if (is_in_neighbors) {
 			sprintf(temp, "if (%s.%s.length > 0) {", STATE_SHORT_CUT, GPS_REV_NODE_ID);
@@ -188,12 +189,9 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		}
 	}
 
-	Body.push("MessageData _msg = new MessageData(");
-
-	// todo: should this always be a byte?
-	sprintf(str_buf, "(byte) %d", SINFO.msg_class->id);
-	Body.push(str_buf);
-	Body.pushln(");");
+	sprintf(temp, "entry_method_bb%d_recv_message *_msg = new entry_method_bb%d_recv_message();", 
+			b->get_id(), b->get_id());
+	Body.pushln(temp);
 
 	//------------------------------------------------------------
 	// create message variables 
@@ -213,12 +211,10 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 	std::list<gm_gps_communication_symbol_info>::iterator I;
 	for (I = LIST.begin(); I != LIST.end(); I++) {
 		gm_gps_communication_symbol_info& SYM = *I;
-		Body.push("_msg.");
-		const char* fname = get_message_field_var_name(SYM.gm_type, SYM.idx);
-		Body.push(fname);
-		delete[] fname;
-		Body.push(" = ");
 		gm_symtab_entry * e = SYM.symbol;
+		Body.push("_msg->");
+		Body.push(create_key_string(e->getId()));
+		Body.push(" = ");
 		if (e->getType()->is_node_property()) {
 			generate_vertex_prop_access_rhs(e->getId(), Body);
 		} else if (e->getType()->is_edge_property()) {
@@ -228,8 +224,6 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		}
 		Body.pushln(";");
 	}
-
-	gm_gps_basic_block *b = (gm_gps_basic_block *)fe->get_basic_block();
 
 	if (!need_separate_message) {
 		if (is_in_neighbors) {
@@ -318,4 +312,8 @@ void gm_charm_lib::generate_vertex_prop_access_remote_rhs(ast_id *id, gm_code_wr
 }
 void gm_charm_lib::generate_vertex_prop_access_prepare(gm_code_writer& Body) {
 	assert(false);
+}
+void gm_charm_lib::generate_broadcast_receive_vertex(ast_id* id, gm_code_writer& Body) {
+    Body.push("msg->");
+    Body.push(create_key_string(id));
 }

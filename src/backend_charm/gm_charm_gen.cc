@@ -540,10 +540,11 @@ void gm_charm_gen::write_headers() {
     //get_giraph_lib()->generate_headers_output(Body_output);
 }
 
-
 void gm_charm_gen::generate_class(ast_procdef* proc) {
 	//write_headers();
 	begin_module(proc->get_procname()->get_genname(), true);
+	generate_master_messages();
+	generate_vertex_messages();
 	generate_master();
 	generate_vertex();
 	end_module(proc->get_procname()->get_genname());

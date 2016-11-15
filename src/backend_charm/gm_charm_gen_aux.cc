@@ -48,6 +48,18 @@ void gm_charm_gen::end_module(char *name) {
     Body_ci.NL();
 }
 
+void gm_charm_gen::begin_chare_array(char *name, int dim ) {
+	char temp[1024];
+	sprintf(temp, "array [%dD] %s {", dim, name);
+	Body_ci.pushln(temp);
+}
+
+void gm_charm_gen::end_chare_array(char *name) {
+	  char temp[1024];
+		sprintf(temp, "}; // %s", name);
+    Body_ci.pushln(temp);
+}
+
 void gm_charm_gen::begin_chare(char *name, bool is_mainchare) {
 		if (is_mainchare) 
 			Body_ci.push("mainchare ");

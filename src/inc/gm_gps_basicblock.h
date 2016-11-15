@@ -179,6 +179,28 @@ public:
         return receivers.size() > 0;
     }
 
+		int get_scalar_args_count() {
+			int count = 0;
+			std::map<gm_symtab_entry*, gps_syminfo*>::iterator I;
+			for (I = symbols.begin(); I != symbols.end(); I++) {
+				gm_symtab_entry* sym = I->first;
+				gps_syminfo* local_info = I->second;
+				if (!local_info->is_scalar()) continue;
+				gps_syminfo* global_info = (gps_syminfo*) sym->find_info(GPS_TAG_BB_USAGE);
+				assert(global_info!=NULL);
+				if (sym->getType()->is_node_iterator()) {
+					// do nothing
+				} else if (global_info->is_scoped_global()) {
+					if (local_info->is_used_as_rhs()) {
+						count++;
+					} else {
+						//printf("omitting  %s\n", sym->getId()->get_genname());
+					}
+				} 
+			}
+			return count;
+		}
+
 private:
     std::list<ast_sent*>::iterator I;
     std::list<ast_sent*> sents;

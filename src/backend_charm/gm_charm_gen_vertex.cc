@@ -20,14 +20,43 @@ static bool is_symbol_defined_in_bb(gm_gps_basic_block* b, gm_symtab_entry *e) {
 		return true;
 }
 
+void gm_charm_gen::generate_vertex_entry_method_decls() {
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	std::list<gm_gps_basic_block*>& bb_blocks = info->get_basic_blocks();
+	std::list<gm_gps_basic_block*>::iterator I;
+	gm_redirect_reproduce(f_body);
+	for (I = bb_blocks.begin(); I != bb_blocks.end(); I++) {
+		gm_gps_basic_block* b = *I;
+		if ((!b->is_prepare()) && (!b->is_vertex())) continue;
+		generate_vertex_entry_method_decl(b, true);
+	}
+}
+
+void gm_charm_gen::generate_vertex_entry_method_decl(gm_gps_basic_block* b, bool with_entry) {
+	int id = b->get_id();
+	int type = b->get_type();
+	char temp[1024];
+
+	if (b->has_receiver()) {
+		sprintf(temp, "entry void entry_method_bb%d_recv (entry_method_bb%d_recv_message *msg);", b->get_id());
+		Body_ci.pushln(temp);
+	}
+
+	if (b->get_scalar_args_count() > 0) {
+		sprintf(temp, "entry void entry_method_bb%d (entry_method_bb%d_message *msg);", b->get_id());
+		Body_ci.pushln(temp);
+	}
+}
+
 void gm_charm_gen::generate_vertex() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
 	sprintf(temp, "%s_vertex", proc->get_procname()->get_genname());
 
 	// generate chare class declaration in .ci file
-	begin_chare(temp, false);
-	end_chare(temp);
+	begin_chare_array(temp, 1);
+	generate_vertex_entry_method_decls();
+	end_chare_array(temp);
 
 	// generate chare class implementation in .C file
 	begin_class(temp);
@@ -45,9 +74,64 @@ void gm_charm_gen::generate_default_ctor(char *name) {
 	Body.pushln(temp);
 }
 
-void gm_charm_gen::generate_vertex_entry_methods() {
-	char temp[1024];
+void gm_charm_gen::generate_vertex_messages() {
+	Body.pushln("// vertex messages");
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	std::list<gm_gps_basic_block*>& bb_blocks = info->get_basic_blocks();
+	std::list<gm_gps_basic_block*>::iterator I;
+	gm_redirect_reproduce(f_body);
+	for (I = bb_blocks.begin(); I != bb_blocks.end(); I++) {
+		gm_gps_basic_block* b = *I;
+		if ((!b->is_prepare()) && (!b->is_vertex())) continue;
+		generate_vertex_message_decl_ci(b);
+		generate_vertex_message_def(b);
+	}
+}
 
+void gm_charm_gen::generate_vertex_message_def(gm_gps_basic_block *b) {
+	//---------------------------------------------------
+	// generate struct for *_recv method
+	//---------------------------------------------------
+	if (b->has_receiver()) {
+		sprintf(temp, "class entry_method_bb%d_recv_msg : public CMessage_entry_method_bb%d_recv_msg {", 
+				b->get_id(), b->get_id());
+		Body.pushln(temp);
+		generate_vertex_entry_method_args_recv(b, false);
+		Body.pushln("};");
+	}
+
+	//---------------------------------------------------
+	// generate struct for *_recv method
+	//---------------------------------------------------
+
+	if (b->get_scalar_args_count() > 0) {
+		sprintf(temp, "class entry_method_bb%d_msg : public CMessage_entry_method_bb%d_msg {", 
+				b->get_id(), b->get_id());
+		Body.pushln(temp);
+		generate_vertex_entry_method_args_scala(b, false);
+		Body.pushln("};");
+	}
+}
+
+void gm_charm_gen::generate_vertex_message_decl_ci(gm_gps_basic_block *b) {
+	//---------------------------------------------------
+	// generate struct for *_recv method
+	//---------------------------------------------------
+	if (b->has_receiver()) {
+		sprintf(temp, "message entry_method_bb%d_recv_msg;", b->get_id());
+		Body_ci.pushln(temp);
+	}
+
+	//---------------------------------------------------
+	// generate struct for *_recv method
+	//---------------------------------------------------
+	if (b->get_scalar_args_count() > 0) {
+		sprintf(temp, "message entry_method_bb%d_msg;", b->get_id());
+		Body_ci.pushln(temp);
+	}
+}
+
+void gm_charm_gen::generate_vertex_entry_methods() {
 	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 	std::list<gm_gps_basic_block*>& bb_blocks = info->get_basic_blocks();
 	std::list<gm_gps_basic_block*>::iterator I;
@@ -71,11 +155,12 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	//---------------------------------------------------
 	if (b->has_receiver()) {
 
-		sprintf(temp, "void entry_method_bb%d_recv (", b->get_id());
-		Body.push(temp);
-		// generate entry method parameters
-		generate_vertex_entry_method_args_recv(b);
-		Body.pushln(") {");
+		sprintf(temp, "void entry_method_bb%d_recv (entry_method_bb%d_recv_message *msg) {", b->get_id(), b->get_id());
+		Body.pushln(temp);
+		// load entry method parameters
+		generate_vertex_entry_method_args_recv(b, true);
+		Body.pushln("delete msg;");
+
 		set_receiver_generate(true); 
 
 		std::list<gm_gps_comm_unit>& R = b->get_receivers();
@@ -142,13 +227,17 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	// Generate main entry method 
 	//---------------------------------------------------
 
-	//sprintf(temp, "// basic block id%d ", b->get_id()); 
-	sprintf(temp, "void entry_method_bb%d (", b->get_id());
-	Body.push(temp);
-	// generate entry method parameters
-	generate_vertex_entry_method_args_scala(b);
-	Body.pushln(") {");
-	// generate entry method body
+	if (b->get_scalar_args_count() > 0) {
+		sprintf(temp, "void entry_method_bb%d (entry_method_bb%d_message *msg) {", b->get_id(), b->get_id());
+		Body.pushln(temp);
+		// load entry method parameters
+		generate_vertex_entry_method_args_scala(b, true);
+		Body.pushln("delete msg;");
+	}
+	else {
+		sprintf(temp, "void entry_method_bb%d () {", b->get_id());
+		Body.pushln(temp);
+	}
 
 	assert(type == GM_GPS_BBTYPE_BEGIN_VERTEX);
 	bool is_conditional = b->find_info_bool(GPS_FLAG_IS_INTRA_MERGED_CONDITIONAL);
@@ -197,12 +286,11 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	Body.pushln("}");
 }
 
-void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b) {
-	int cnt = 0;
+void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b, bool with_assign) {
 	// load scalar variable
 	std::map<gm_symtab_entry*, gps_syminfo*>& symbols = b->get_symbols();
 	std::map<gm_symtab_entry*, gps_syminfo*>::iterator I;
-	Body.push("\n/*scalars:*/ ");
+	//Body.push("\n/*scalars:*/ ");
 	for (I = symbols.begin(); I != symbols.end(); I++) {
 		gm_symtab_entry* sym = I->first;
 		gps_syminfo* local_info = I->second;
@@ -215,10 +303,13 @@ void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b
 			// do nothing
 		} else if (global_info->is_scoped_global()) {
 			if (local_info->is_used_as_rhs()) {
-				if (cnt == 1) 
-					Body.pushln(",");
 				generate_scalar_var_def(sym, false);
-				cnt++;
+				if (with_assign) {
+					Body.push(" = ");
+					get_lib()->generate_broadcast_receive_vertex(sym->getId(), Body);
+				}
+				Body.pushln(";");
+				
 			} else {
 				//printf("omitting  %s\n", sym->getId()->get_genname());
 			}
@@ -226,11 +317,10 @@ void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b
 	}
 }
 
-void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b) {
+void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b, bool with_assign) {
 	assert(b->has_receiver());
 	int cnt = 0;
 	// generate parameters from communicating symbols
-	Body.push("\n/*receivers:*/ ");
 	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 
 	std::list<gm_gps_comm_unit>& R = b->get_receivers();
@@ -248,22 +338,25 @@ void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b)
 				gm_gps_communication_symbol_info& SYM = *J;
 				gm_symtab_entry * e = SYM.symbol;
 
-				if (cnt > 1) 
-					Body.push(",");
-
 				// check it once again later
 				//if (e->getType()->is_property() || e->getType()->is_node_compatible() || e->getType()->is_edge_compatible() || !is_symbol_defined_in_bb(b, e)) {
-				const char* str = get_type_string(SYM.gm_type);
-				Body.push(str);
-				Body.SPC();
+				//const char* str = get_type_string(SYM.gm_type);
+				//Body.push(str);
+				//Body.SPC();
 				//}
 				if (e->getType()->is_property()) {
 					assert(false);
 					//Body.pushln("generate_vertex_prop_access_remote_lhs(e->getId(), Body);");
-				} else {
+				} /*else {
 					Body.push(e->getId()->get_genname());
-					cnt++;
+				}*/
+
+				generate_scalar_var_def(e, false);
+				if (with_assign) {
+					Body.push(" = ");
+					get_lib()->generate_broadcast_receive_vertex(e->getId(), Body);
 				}
+				Body.pushln(";");
 			}
 
 		} else {

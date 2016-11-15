@@ -18,3 +18,7 @@ void gm_charm_gen::generate_master() {
 	begin_class(temp);
 	end_class(temp);
 }
+
+void gm_charm_gen::generate_master_messages() {
+	Body.pushln("// master messages");
+}

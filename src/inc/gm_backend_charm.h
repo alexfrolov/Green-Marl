@@ -39,6 +39,8 @@ class gm_charm_lib : public gm_graph_library {
     //virtual void generate_headers(gm_code_writer& Body);
 		virtual void generate_reduce_assign_vertex(ast_assign* a, gm_code_writer& Body, int reduce_op_type = GMREDUCE_NULL);
 
+    virtual void generate_broadcast_receive_vertex(ast_id* id, gm_code_writer& Body);
+
 		virtual void generate_vertex_prop_access_lhs(ast_id *id, gm_code_writer& Body);
 		virtual void generate_vertex_prop_access_lhs_edge(ast_id *id, gm_code_writer& Body);
 		virtual void generate_vertex_prop_access_rhs(ast_id *id, gm_code_writer& Body);
@@ -118,12 +120,17 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void analyse_symbols(ast_procdef* proc);
 		virtual void generate_class(ast_procdef* proc);
 		virtual void generate_master();
-
+		virtual void generate_master_messages();
 		virtual void generate_vertex();
+		virtual void generate_vertex_messages();
+		virtual void generate_vertex_message_def(gm_gps_basic_block *b);
+		virtual void generate_vertex_message_decl_ci(gm_gps_basic_block *b);
+		virtual void generate_vertex_entry_method_decls();
+		virtual void generate_vertex_entry_method_decl(gm_gps_basic_block *b, bool with_entry);
 		virtual void generate_vertex_entry_methods();
 		virtual void generate_vertex_entry_method(gm_gps_basic_block *b);
-		virtual void generate_vertex_entry_method_args_scala(gm_gps_basic_block *b);
-		virtual void generate_vertex_entry_method_args_recv(gm_gps_basic_block *b);
+		virtual void generate_vertex_entry_method_args_scala(gm_gps_basic_block *b, bool with_assign);
+		virtual void generate_vertex_entry_method_args_recv(gm_gps_basic_block *b, bool with_assign);
 		virtual void generate_edge_list(ast_procdef *proc);
 		virtual void generate_vertex_properties(ast_procdef *proc);
 		virtual void generate_default_ctor(char *name);
@@ -136,6 +143,8 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void end_struct(char *name);
 		virtual void begin_chare(char *name, bool is_mainchare);
 		virtual void end_chare(char *name);
+		virtual void begin_chare_array(char *name, int dim);
+		virtual void end_chare_array(char *name);
 
     virtual void generate_rhs_id(ast_id* i);
     virtual void generate_rhs_field(ast_field* i);
