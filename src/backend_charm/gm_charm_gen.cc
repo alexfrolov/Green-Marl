@@ -543,12 +543,28 @@ void gm_charm_gen::write_headers() {
 void gm_charm_gen::generate_class(ast_procdef* proc) {
 	//write_headers();
 	begin_module(proc->get_procname()->get_genname(), true);
+	generate_pre_include_section();
 	generate_master_messages();
 	generate_vertex_messages();
 	generate_master();
 	generate_vertex();
+	generate_post_include_section();
 	end_module(proc->get_procname()->get_genname());
 	//do_generate_job_configuration();
+}
+
+void gm_charm_gen::generate_pre_include_section() {
+	char temp[1024];
+  ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "#include \"%s.decl.h\"", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+}
+
+void gm_charm_gen::generate_post_include_section() {
+	char temp[1024];
+  ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "#include \"%s.def.h\"", proc->get_procname()->get_genname());
+	Body.pushln(temp);
 }
 
 void gm_charm_gen::analyse_symbols(ast_procdef* proc) { 

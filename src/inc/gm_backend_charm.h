@@ -145,6 +145,8 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void end_chare(char *name);
 		virtual void begin_chare_array(char *name, int dim);
 		virtual void end_chare_array(char *name);
+		virtual void generate_pre_include_section();
+		virtual void generate_post_include_section();
 
     virtual void generate_rhs_id(ast_id* i);
     virtual void generate_rhs_field(ast_field* i);
