@@ -55,6 +55,7 @@ void gm_charm_gen::generate_vertex() {
 
 	// generate chare class declaration in .ci file
 	begin_chare_array(temp, 1);
+	generate_vertex_default_ctor_decl(temp);
 	generate_vertex_entry_method_decls();
 	end_chare_array(temp);
 
@@ -64,11 +65,17 @@ void gm_charm_gen::generate_vertex() {
 	generate_edge_list(proc);
 	generate_vertex_properties(proc);
 	Body.pushln("public:");
-	generate_default_ctor(temp);
+	generate_vertex_default_ctor_def(temp);
 	generate_vertex_entry_methods();
 	end_class(temp);
 }
-void gm_charm_gen::generate_default_ctor(char *name) {
+void gm_charm_gen::generate_vertex_default_ctor_decl(char *name) {
+	char temp[1024];
+	sprintf(temp, "entry %s();", name); 
+	Body_ci.pushln(temp);
+}
+
+void gm_charm_gen::generate_vertex_default_ctor_def(char *name) {
 	char temp[1024];
 	sprintf(temp, "%s() {}", name); 
 	Body.pushln(temp);
