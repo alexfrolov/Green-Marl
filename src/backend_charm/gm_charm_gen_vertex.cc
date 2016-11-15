@@ -38,12 +38,18 @@ void gm_charm_gen::generate_vertex_entry_method_decl(gm_gps_basic_block* b, bool
 	char temp[1024];
 
 	if (b->has_receiver()) {
-		sprintf(temp, "entry void entry_method_bb%d_recv (entry_method_bb%d_recv_message *msg);", b->get_id());
+		sprintf(temp, "entry void entry_method_bb%d_recv(entry_method_bb%d_recv_message *msg);", 
+				b->get_id(), b->get_id());
 		Body_ci.pushln(temp);
 	}
 
 	if (b->get_scalar_args_count() > 0) {
-		sprintf(temp, "entry void entry_method_bb%d (entry_method_bb%d_message *msg);", b->get_id());
+		sprintf(temp, "entry void entry_method_bb%d(entry_method_bb%d_message *msg);", 
+				b->get_id(), b->get_id());
+		Body_ci.pushln(temp);
+	} else {
+		sprintf(temp, "entry void entry_method_bb%d();", 
+				b->get_id());
 		Body_ci.pushln(temp);
 	}
 }
@@ -61,14 +67,28 @@ void gm_charm_gen::generate_vertex() {
 
 	// generate chare class implementation in .C file
 	begin_class(temp);
-	Body.pushln("private:");
-	generate_edge_list(proc);
-	generate_vertex_properties(proc);
 	Body.pushln("public:");
-	generate_vertex_default_ctor_def(temp);
-	generate_vertex_entry_methods();
+	Body.push_indent();
+		generate_edge_properties_type();
+		generate_vertex_properties_type();
+	Body.pop_indent();
+	Body.pushln("public:");
+	Body.push_indent();
+		generate_vertex_default_ctor_def(temp);
+		generate_vertex_entry_methods();
+	Body.pop_indent();
+	Body.pushln("private:");
+	Body.push_indent();
+		generate_vertex_all_properties();
+	Body.pop_indent();
 	end_class(temp);
 }
+
+void gm_charm_gen::generate_vertex_all_properties() {
+	Body.pushln("std::list<struct edge> edges;");
+	Body.pushln("struct vertex_properties props;");
+}
+
 void gm_charm_gen::generate_vertex_default_ctor_decl(char *name) {
 	char temp[1024];
 	sprintf(temp, "entry %s();", name); 
@@ -185,7 +205,7 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 				//if (is_conditional)
 				//	gm_baseindent_reproduce(5);
 				//else
-					gm_baseindent_reproduce(2);
+					gm_baseindent_reproduce(3);
 
 					fe->reproduce(0);
 					gm_flush_reproduce();
@@ -253,7 +273,7 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 
 	if (b->get_num_sents() > 0) {
 		//assert (b->get_num_sents() == 1);
-		gm_baseindent_reproduce(2);
+		gm_baseindent_reproduce(3);
 		Body.pushln("/*------");
 		Body.flush();
 		b->reproduce_sents(false);
@@ -372,14 +392,12 @@ void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b,
 	}
 }
 
-void gm_charm_gen::generate_edge_list(ast_procdef *proc) {
+void gm_charm_gen::generate_edge_properties_type() {
 	char temp[1024];
-	Body.pushln("// edge list");
 	begin_struct("edge");
 	Body.pushln("uint64_t v;");
-	Body.pushln("// edge properties");
 	begin_struct("edge_properties");
-	gm_charm_beinfo * info = (gm_charm_beinfo *) FE.get_backend_info(proc);
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
   std::set<gm_symtab_entry*>& prop = info->get_edge_prop_symbols();
 	std::set<gm_symtab_entry*>::iterator I;
 	for (I = prop.begin(); I != prop.end(); I++) {
@@ -392,14 +410,12 @@ void gm_charm_gen::generate_edge_list(ast_procdef *proc) {
 	end_struct("edge_properties");
 	Body.pushln("struct edge_properties props;");
 	end_struct("edge");
-	Body.pushln("std::list<struct edge> edges;");
 }
 
-void gm_charm_gen::generate_vertex_properties(ast_procdef *proc) {
+void gm_charm_gen::generate_vertex_properties_type() {
 	char temp[1024];
-	Body.pushln("// vertex properties");
 	begin_struct("vertex_properties");
-	gm_charm_beinfo * info = (gm_charm_beinfo *) FE.get_backend_info(proc);
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
   std::set<gm_symtab_entry*>& prop = info->get_node_prop_symbols();
 	std::set<gm_symtab_entry*>::iterator I;
 	for (I = prop.begin(); I != prop.end(); I++) {
@@ -409,8 +425,7 @@ void gm_charm_gen::generate_vertex_properties(ast_procdef *proc) {
 					sym->getId()->get_genname());
 			Body.pushln(temp);
 	}
-	end_class("vertex_properties");
-	Body.pushln("struct vertex_properties props;");
+	end_struct("vertex_properties");
 }
 
 void gm_charm_gen::generate_scalar_var_def(gm_symtab_entry* sym, bool finish_sent) {

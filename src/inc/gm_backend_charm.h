@@ -121,12 +121,15 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_class(ast_procdef* proc);
 		virtual void generate_master();
 		virtual void generate_master_messages();
+		virtual void generate_master_properties();
 		virtual void generate_master_default_ctor_decl(char *name);
 		virtual void generate_master_default_ctor_def(char *name);
 		virtual void generate_master_entry_method_decls();
 		virtual void generate_master_entry_method_decl(gm_gps_basic_block *b, bool with_entry);
 		virtual void generate_master_entry_methods();
 		virtual void generate_master_entry_method(gm_gps_basic_block *b);
+		virtual void generate_master_entry_method_do_procname_decl();
+		virtual void generate_master_entry_method_do_procname_def();
 
 
 		virtual void generate_vertex();
@@ -141,8 +144,9 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_vertex_entry_method_args_recv(gm_gps_basic_block *b, bool with_assign);
 		virtual void generate_vertex_default_ctor_decl(char *name);
 		virtual void generate_vertex_default_ctor_def(char *name);
-		virtual void generate_edge_list(ast_procdef *proc);
-		virtual void generate_vertex_properties(ast_procdef *proc);
+		virtual void generate_vertex_properties_type();
+		virtual void generate_edge_properties_type();
+		virtual void generate_vertex_all_properties();
 
 		virtual void begin_module(char *name, bool is_mainmodule);
 		virtual void end_module(char *name);

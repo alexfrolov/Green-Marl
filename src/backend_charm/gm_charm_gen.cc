@@ -558,6 +558,7 @@ void gm_charm_gen::generate_pre_include_section() {
   ast_procdef* proc = FE.get_current_proc();
 	sprintf(temp, "#include \"%s.decl.h\"", proc->get_procname()->get_genname());
 	Body.pushln(temp);
+	Body.pushln("#include \"graphlib.h\"");
 }
 
 void gm_charm_gen::generate_post_include_section() {
