@@ -50,7 +50,7 @@ const char* gm_charm_gen::get_type_string(int gm_type) {
 		case GMTYPE_DOUBLE:
 			return "double";
 		case GMTYPE_BOOL:
-			return "boolean";
+			return "bool";
 		case GMTYPE_NODE:
 			//if (get_lib()->is_node_type_int())
 			//	return "int";
@@ -417,7 +417,7 @@ void gm_charm_gen::generate_sent_foreach(ast_foreach* fe) {
 		//assert(false);
 	}
 	else {
-		assert (!fe->find_info_bool(GPS_FLAG_IS_OUTER_LOOP));
+		//assert (!fe->find_info_bool(GPS_FLAG_IS_OUTER_LOOP));
 		if (fe->is_source_field())
 		{
 			ast_field * f = fe->get_source_field();
@@ -544,7 +544,7 @@ void gm_charm_gen::generate_class(ast_procdef* proc) {
 	//write_headers();
 	begin_module(proc->get_procname()->get_genname(), true);
 	generate_pre_include_section();
-	generate_master_messages();
+	//generate_master_messages();
 	generate_vertex_messages();
 	generate_master();
 	generate_vertex();

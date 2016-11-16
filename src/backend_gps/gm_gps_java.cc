@@ -453,6 +453,7 @@ void gm_gps_gen::generate_sent_foreach(ast_foreach* fe) {
         assert (!fe->find_info_bool(GPS_FLAG_IS_OUTER_LOOP));
         if (fe->is_source_field())
         {
+			Body.pushln("--generate_sent_foreach (outer_loop)--");
             ast_field * f = fe->get_source_field();
 
             char iterator_name[256];

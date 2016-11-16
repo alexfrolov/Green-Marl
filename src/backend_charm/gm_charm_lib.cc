@@ -12,24 +12,33 @@ const char* create_key_string(ast_id* id) {
 }
 
 
+void gm_charm_lib::generate_broadcast_send_master(ast_id* id, gm_code_writer& Body) {
+
+	/*char temp[1024];
+	sprintf(temp, "setAggregatedValue(%s, new ", create_key_string(id));
+	Body.push(temp);
+	generate_broadcast_writable_type(id->getTypeSummary(), Body);
+
+	Body.push("(");
+	get_main()->generate_rhs_id(id);
+	Body.pushln("));");*/
+	assert(false);
+
+}
+
+void gm_charm_lib::generate_broadcast_receive_master(ast_id* id, gm_code_writer& Body, int reduce_op) {
+	get_main()->generate_lhs_id(id);
+}
+
 void gm_charm_lib::generate_reduce_assign_vertex(ast_assign* a, gm_code_writer& Body, int reduce_op_type) {
 
 	assert(a->is_target_scalar());
 	ast_id* id = a->get_lhs_scala();
 
-	Body.push("getGlobalObjectsMap().putOrUpdateGlobalObject(");
-	Body.push(create_key_string(id));
-	Body.push(",");
-	Body.push("new ");
-	printf("generate_broadcast_variable_type(id->getTypeSummary(), Body, reduce_op_type);  // create BV by type \n");
-
-	//---------------------------------------------------
-	// Initial Value: Reading of Id
-	//---------------------------------------------------
-	Body.push("(");
+	Body.push(id->get_genname());
+	Body.push(" = ");
 	get_main()->generate_expr(a->get_rhs());
-	Body.push(")");
-	Body.pushln(");");
+	Body.pushln(";");
 }
 
 void gm_charm_lib::generate_vertex_prop_access_lhs(ast_id *id, gm_code_writer& Body) {
@@ -188,9 +197,10 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 			}
 		}
 	}
-
-	sprintf(temp, "entry_method_bb%d_recv_message *_msg = new entry_method_bb%d_recv_message();", 
-			b->get_id(), b->get_id());
+	
+	char *entry_name = generate_vertex_entry_method_name(b);
+	sprintf(temp, "%s_recv_msg *_msg = new %s_recv_msg();", 
+			entry_name, entry_name);
 	Body.pushln(temp);
 
 	//------------------------------------------------------------
@@ -231,13 +241,13 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 			sprintf(temp, "sendMessages(%s.%s, _msg);", STATE_SHORT_CUT, GPS_REV_NODE_ID);
 			Body.pushln(temp);
 		} else {
-			sprintf(temp, "thisProxy[_e->v].entry_method_bb%d_recv(_msg);", b->get_id());
+			sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", b->get_id());
 			Body.pushln(temp);
 		}
 		Body.pushln("}");
 	} else {
 		//Body.pushln("thisProxy[_e->v].entry_method_bb??(_msg);");
-			sprintf(temp, "thisProxy[_e->v].entry_method_bb%d_recv(_msg);", b->get_id());
+			sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", entry_name);
 			Body.pushln(temp);
 		if (sents_after_message.size() > 0) {
 			Body.NL();
@@ -252,6 +262,7 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		Body.pushln("}");
 	}
 	assert(sents_after_message.size() == 0);
+	delete [] entry_name;
 }
 
 void gm_charm_lib::generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Body, bool is_master) {
@@ -316,4 +327,16 @@ void gm_charm_lib::generate_vertex_prop_access_prepare(gm_code_writer& Body) {
 void gm_charm_lib::generate_broadcast_receive_vertex(ast_id* id, gm_code_writer& Body) {
     Body.push("msg->");
     Body.push(create_key_string(id));
+}
+
+char *gm_charm_lib::generate_vertex_entry_method_name(gm_gps_basic_block *b) {
+	char temp [1024];
+	sprintf(temp, "__vertex_ep_bb%d", b->get_id());
+	return gm_strdup(temp);
+}
+
+char *gm_charm_lib::generate_master_entry_method_name(gm_gps_basic_block *b) {
+	char temp [1024];
+	sprintf(temp, "__master_ep_bb%d", b->get_id());
+	return gm_strdup(temp);
 }

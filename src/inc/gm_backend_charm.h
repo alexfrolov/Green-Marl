@@ -34,8 +34,8 @@ class gm_charm_lib : public gm_graph_library {
     //virtual void generate_broadcast_state_master(const char* state_var, gm_code_writer& Body);
     //virtual void generate_broadcast_isFirst_master(const char* var, gm_code_writer& Body);
     //virtual void generate_broadcast_variable_type(int gm_type_id, gm_code_writer& Body, int reduce_op = GMREDUCE_NULL);
-    //virtual void generate_broadcast_send_master(ast_id* id, gm_code_writer& Body);
-    //virtual void generate_broadcast_receive_master(ast_id* id, gm_code_writer& Body, int reduce_op = GMREDUCE_NULL);
+    virtual void generate_broadcast_send_master(ast_id* id, gm_code_writer& Body);
+    virtual void generate_broadcast_receive_master(ast_id* id, gm_code_writer& Body, int reduce_op = GMREDUCE_NULL);
     //virtual void generate_headers(gm_code_writer& Body);
 		virtual void generate_reduce_assign_vertex(ast_assign* a, gm_code_writer& Body, int reduce_op_type = GMREDUCE_NULL);
 
@@ -66,6 +66,10 @@ class gm_charm_lib : public gm_graph_library {
     virtual void generate_message_receive_end(gm_code_writer& Body, bool is_only_comm);
 
     virtual void generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Body, bool is_master);
+
+		virtual char *generate_vertex_entry_method_name(gm_gps_basic_block *b);
+		virtual char *generate_master_entry_method_name(gm_gps_basic_block *b);
+
 
 	private:
 		gm_charm_gen *main;
@@ -130,6 +134,9 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_master_entry_method(gm_gps_basic_block *b);
 		virtual void generate_master_entry_method_do_procname_decl();
 		virtual void generate_master_entry_method_do_procname_def();
+
+    virtual void do_generate_scalar_broadcast_send(gm_gps_basic_block* b);
+    virtual void do_generate_scalar_broadcast_receive(gm_gps_basic_block *b, gm_code_writer & Body);
 
 
 		virtual void generate_vertex();

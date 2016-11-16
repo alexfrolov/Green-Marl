@@ -36,22 +36,22 @@ void gm_charm_gen::generate_vertex_entry_method_decl(gm_gps_basic_block* b, bool
 	int id = b->get_id();
 	int type = b->get_type();
 	char temp[1024];
+	char *entry_name = get_lib()->generate_vertex_entry_method_name(b);
 
 	if (b->has_receiver()) {
-		sprintf(temp, "entry void entry_method_bb%d_recv(entry_method_bb%d_recv_message *msg);", 
-				b->get_id(), b->get_id());
+		sprintf(temp, "entry void %s_recv(%s_recv_msg *msg);", entry_name, entry_name);
 		Body_ci.pushln(temp);
 	}
 
 	if (b->get_scalar_args_count() > 0) {
-		sprintf(temp, "entry void entry_method_bb%d(entry_method_bb%d_message *msg);", 
-				b->get_id(), b->get_id());
+		sprintf(temp, "entry void %s(%s_msg *msg);", entry_name, entry_name);
 		Body_ci.pushln(temp);
 	} else {
-		sprintf(temp, "entry void entry_method_bb%d();", 
-				b->get_id());
+		sprintf(temp, "entry void %s();", entry_name);
 		Body_ci.pushln(temp);
 	}
+
+	delete [] entry_name;
 }
 
 void gm_charm_gen::generate_vertex() {
@@ -116,12 +116,13 @@ void gm_charm_gen::generate_vertex_messages() {
 }
 
 void gm_charm_gen::generate_vertex_message_def(gm_gps_basic_block *b) {
+	char *entry_name = get_lib()->generate_vertex_entry_method_name(b);
 	//---------------------------------------------------
 	// generate struct for *_recv method
 	//---------------------------------------------------
 	if (b->has_receiver()) {
-		sprintf(temp, "class entry_method_bb%d_recv_msg : public CMessage_entry_method_bb%d_recv_msg {", 
-				b->get_id(), b->get_id());
+		sprintf(temp, "class %s_recv_msg : public CMessage_%s_recv_msg {", 
+				entry_name, entry_name);
 		Body.pushln(temp);
 		generate_vertex_entry_method_args_recv(b, false);
 		Body.pushln("};");
@@ -132,20 +133,22 @@ void gm_charm_gen::generate_vertex_message_def(gm_gps_basic_block *b) {
 	//---------------------------------------------------
 
 	if (b->get_scalar_args_count() > 0) {
-		sprintf(temp, "class entry_method_bb%d_msg : public CMessage_entry_method_bb%d_msg {", 
-				b->get_id(), b->get_id());
+		sprintf(temp, "class %s_msg : public CMessage_%s_msg {", 
+				entry_name, entry_name);
 		Body.pushln(temp);
 		generate_vertex_entry_method_args_scala(b, false);
 		Body.pushln("};");
 	}
+	delete [] entry_name;
 }
 
 void gm_charm_gen::generate_vertex_message_decl_ci(gm_gps_basic_block *b) {
+	char *entry_name = get_lib()->generate_vertex_entry_method_name(b);
 	//---------------------------------------------------
 	// generate struct for *_recv method
 	//---------------------------------------------------
 	if (b->has_receiver()) {
-		sprintf(temp, "message entry_method_bb%d_recv_msg;", b->get_id());
+		sprintf(temp, "message %s_recv_msg;", entry_name);
 		Body_ci.pushln(temp);
 	}
 
@@ -153,9 +156,10 @@ void gm_charm_gen::generate_vertex_message_decl_ci(gm_gps_basic_block *b) {
 	// generate struct for *_recv method
 	//---------------------------------------------------
 	if (b->get_scalar_args_count() > 0) {
-		sprintf(temp, "message entry_method_bb%d_msg;", b->get_id());
+		sprintf(temp, "message %s_msg;", entry_name);
 		Body_ci.pushln(temp);
 	}
+	delete [] entry_name;
 }
 
 void gm_charm_gen::generate_vertex_entry_methods() {
@@ -174,15 +178,15 @@ void gm_charm_gen::generate_vertex_entry_methods() {
 void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	int id = b->get_id();
 	int type = b->get_type();
-
 	char temp[1024];
+	char *entry_name = get_lib()->generate_vertex_entry_method_name(b);
 
 	//---------------------------------------------------
 	// Generate recieve entry method if needed
 	//---------------------------------------------------
 	if (b->has_receiver()) {
 
-		sprintf(temp, "void entry_method_bb%d_recv (entry_method_bb%d_recv_message *msg) {", b->get_id(), b->get_id());
+		sprintf(temp, "void %s_recv (%s_recv_msg *msg) {", entry_name, entry_name);
 		Body.pushln(temp);
 		// load entry method parameters
 		generate_vertex_entry_method_args_recv(b, true);
@@ -255,14 +259,14 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	//---------------------------------------------------
 
 	if (b->get_scalar_args_count() > 0) {
-		sprintf(temp, "void entry_method_bb%d (entry_method_bb%d_message *msg) {", b->get_id(), b->get_id());
+		sprintf(temp, "void %s (%s_msg *msg) {", entry_name, entry_name);
 		Body.pushln(temp);
 		// load entry method parameters
 		generate_vertex_entry_method_args_scala(b, true);
 		Body.pushln("delete msg;");
 	}
 	else {
-		sprintf(temp, "void entry_method_bb%d () {", b->get_id());
+		sprintf(temp, "void %s () {", entry_name);
 		Body.pushln(temp);
 	}
 
@@ -311,6 +315,7 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	}
 
 	Body.pushln("}");
+	delete [] entry_name;
 }
 
 void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b, bool with_assign) {
