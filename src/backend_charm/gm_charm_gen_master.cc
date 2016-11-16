@@ -14,6 +14,8 @@ void gm_charm_gen::generate_master() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
 	sprintf(temp, "%s_main_chare", proc->get_procname()->get_genname());
+	set_master_generate(true);
+	
 
 	// generate chare class declaration in .ci file
 	begin_chare(temp, true);
@@ -31,6 +33,7 @@ void gm_charm_gen::generate_master() {
 	generate_master_entry_method_do_procname_def();
 	generate_master_entry_methods();
 	end_class(temp);
+	set_master_generate(false);
 }
 
 void gm_charm_gen::generate_master_messages() {

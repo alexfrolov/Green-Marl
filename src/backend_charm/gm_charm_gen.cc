@@ -300,7 +300,7 @@ void gm_charm_gen::generate_sent_reduce_assign(ast_assign *a) {
     if (a->is_target_scalar()) {
         // check target is global
         {
-            printf("get_lib()->generate_reduce_assign_vertex(a, Body, a->get_reduce_type());");
+            get_lib()->generate_reduce_assign_vertex(a, Body, a->get_reduce_type());
 						//assert(false);
         }
         return;

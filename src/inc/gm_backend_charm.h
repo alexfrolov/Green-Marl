@@ -81,7 +81,8 @@ class gm_charm_lib : public gm_graph_library {
 class gm_charm_gen : public gm_backend, public gm_code_generator {
 	public:
 		gm_charm_gen() : 
-			gm_code_generator(Body), dname(NULL), fname(NULL), f_body(NULL), f_body_ci(NULL), f_shell(NULL) {
+			gm_code_generator(Body), dname(NULL), fname(NULL), f_body(NULL), f_body_ci(NULL), f_shell(NULL),  
+			_is_master_gen(false), _is_receiver_gen(false) {
 				set_lib(new gm_charm_lib(this));
 				init_opt_steps();
 				init_gen_steps();

@@ -5,6 +5,45 @@
 #include "gm_builtin.h"
 #include "gm_defs.h"
 
+char *create_reduce_op_string(int reduce_op_type, ast_typedecl *type) {
+	char temp [1024];
+	switch(reduce_op_type) {
+		case GMREDUCE_INVALID:
+			assert(false);
+			break;
+		case GMREDUCE_PLUS:
+			assert(false);
+			break;
+		case GMREDUCE_MULT:
+			assert(false);
+			break;
+		case GMREDUCE_MIN:
+			assert(false);
+			break;
+		case GMREDUCE_MAX:
+			assert(false);
+			break;
+		case GMREDUCE_AND:
+			assert(false);
+			break;
+		case GMREDUCE_OR:
+			sprintf(temp, "CkReduction::logical_or");
+			break;
+		case GMREDUCE_AVG:
+			assert(false);
+			break;
+		case GMREDUCE_DEFER:
+			assert(false);
+			break;
+		case GMREDUCE_NULL:
+			assert(false);
+			break;
+		default:
+			assert(false);
+	}
+	return gm_strdup(temp);
+}
+
 const char* create_key_string(ast_id* id) {
 	//sprintf(str_buf, "KEY_%s", id->get_genname());
 	//return str_buf;
@@ -31,14 +70,32 @@ void gm_charm_lib::generate_broadcast_receive_master(ast_id* id, gm_code_writer&
 }
 
 void gm_charm_lib::generate_reduce_assign_vertex(ast_assign* a, gm_code_writer& Body, int reduce_op_type) {
+	char temp [1024];
+	gm_gps_basic_block *b = (gm_gps_basic_block *)a->get_basic_block();
+  ast_procdef* proc = FE.get_current_proc();
 
 	assert(a->is_target_scalar());
-	ast_id* id = a->get_lhs_scala();
 
+	//assert(reduce_op_type == GMREDUCE_NULL);
+	ast_id* id = a->get_lhs_scala();
 	Body.push(id->get_genname());
 	Body.push(" = ");
 	get_main()->generate_expr(a->get_rhs());
 	Body.pushln(";");
+
+	if (!get_main()->is_master_generate()) {
+		assert(b->get_num_exits() == 1);
+
+		char *reduce_op_str = create_reduce_op_string(reduce_op_type, id->getTypeInfo());
+		char *entry_method = generate_master_entry_method_name(b->get_nth_exit(0));
+
+		sprintf(temp, "contribute(sizeof(%s), &%s, %s, \nCkCallback(CkIndex_%s_main_chare::%s(), &main_proxy));", 
+				get_main()->get_type_string(id->getTypeInfo()->get_typeid()), id->get_genname(),
+				reduce_op_str, proc->get_procname()->get_genname(), entry_method);
+		Body.pushln(temp);
+		delete [] reduce_op_str;
+		delete [] entry_method;
+	}
 }
 
 void gm_charm_lib::generate_vertex_prop_access_lhs(ast_id *id, gm_code_writer& Body) {
