@@ -74,13 +74,15 @@ void gm_charm_gen::generate_vertex() {
 	Body.pop_indent();
 	Body.pushln("public:");
 	Body.push_indent();
-		generate_vertex_default_ctor_def(temp);
-		generate_vertex_entry_methods();
+	generate_vertex_default_ctor_def(temp);
+	generate_vertex_entry_methods();
 	Body.pop_indent();
+
 	Body.pushln("private:");
 	Body.push_indent();
-		generate_vertex_all_properties();
+	generate_vertex_all_properties();
 	Body.pop_indent();
+
 	end_class(temp);
 }
 

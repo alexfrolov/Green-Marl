@@ -26,12 +26,16 @@ void gm_charm_gen::generate_master() {
 
 	// generate chare class implementation in .C file
 	begin_class(temp);
-	Body.pushln("private:");
-	generate_master_properties();
 	Body.pushln("public:");
+	Body.push_indent();
 	generate_master_default_ctor_def(temp);
 	generate_master_entry_method_do_procname_def();
 	generate_master_entry_methods();
+	Body.pop_indent();
+	Body.pushln("private:");
+	Body.push_indent();
+	generate_master_scalar();
+	Body.pop_indent();
 	end_class(temp);
 	set_master_generate(false);
 }
@@ -47,6 +51,49 @@ void gm_charm_gen::generate_master_properties() {
 	Body.pushln("   gm_charmlib_options opts;");
 	sprintf(temp, "   CProxy_%s_vertex g", name);
 	Body.pushln(temp);
+}
+
+void gm_charm_gen::generate_master_scalar() {
+	char temp[1024];
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	std::set<gm_symtab_entry*>& scalar = info->get_scalar_symbols();
+	std::set<gm_symtab_entry*>::iterator I;
+
+	for (I = scalar.begin(); I != scalar.end(); I++) {
+		gm_symtab_entry *e = *I;
+		gps_syminfo* syminfo = (gps_syminfo*) e->find_info(GPS_TAG_BB_USAGE);
+
+		//printf("%s\n", e->getId()->get_genname());
+		if (!syminfo->is_used_in_master() && !syminfo->is_used_in_vertex() && !syminfo->is_argument()) {
+			//printf("%s is not used in master\n", e->getId()->get_genname());
+			continue;
+		}
+		//if (!syminfo->is_used_in_master() && !syminfo->is_argument()) continue;
+		//if (!syminfo->is_used_in_master() && !syminfo->is_used_in_vertex() && !syminfo->is_argument()) continue;
+
+		sprintf(temp, "%s %s;", get_type_string(e->getType(), true), e->getId()->get_genname());
+		Body.pushln(temp);
+	}
+
+	ast_procdef* proc = FE.get_current_proc();
+	ast_typedecl* t = proc->get_return_type();
+	if ((t != NULL) && (!t->is_void())) {
+		sprintf(temp, "%s %s; // the final return value of the procedure", get_type_string(t, true), GPS_RET_VALUE);
+		Body.pushln(temp);
+	}
+
+	// Intra-Loop Merging
+	/*if (proc->has_info(GPS_LIST_INTRA_MERGED_CONDITIONAL)) {
+		std::list<void*>& L = proc->get_info_list(GPS_LIST_INTRA_MERGED_CONDITIONAL);
+		std::list<void*>::iterator l;
+		for (l = L.begin(); l != L.end(); l++) {
+			gm_gps_basic_block* bb = (gm_gps_basic_block*) (*l);
+			sprintf(temp, "private boolean %s%d = true;", GPS_INTRA_MERGE_IS_FIRST, bb->get_id());
+			Body.pushln(temp);
+		}
+	}*/
+
+	Body.NL();
 }
 
 void gm_charm_gen::generate_master_default_ctor_decl(char *name) {

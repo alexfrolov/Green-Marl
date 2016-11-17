@@ -127,6 +127,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_master();
 		virtual void generate_master_messages();
 		virtual void generate_master_properties();
+		virtual void generate_master_scalar();
 		virtual void generate_master_default_ctor_decl(char *name);
 		virtual void generate_master_default_ctor_def(char *name);
 		virtual void generate_master_entry_method_decls();
