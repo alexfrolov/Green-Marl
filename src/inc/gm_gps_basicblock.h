@@ -179,7 +179,19 @@ public:
         return receivers.size() > 0;
     }
 
-		int get_scalar_args_count() {
+		int get_scalar_rhs_count() {
+			return get_scalar_count(GPS_SYM_USED_AS_RHS);
+		}
+
+		int get_scalar_lhs_count() {
+			return get_scalar_count(GPS_SYM_USED_AS_LHS);
+		}
+
+		int get_scalar_reduce_count() {
+			return get_scalar_count(GPS_SYM_USED_AS_REDUCE);
+		}
+
+		int get_scalar_count(gm_gps_symbol_usage_t sym_type) {
 			int count = 0;
 			std::map<gm_symtab_entry*, gps_syminfo*>::iterator I;
 			for (I = symbols.begin(); I != symbols.end(); I++) {
@@ -191,11 +203,12 @@ public:
 				if (sym->getType()->is_node_iterator()) {
 					// do nothing
 				} else if (global_info->is_scoped_global()) {
-					if (local_info->is_used_as_rhs()) {
+					if (sym_type == GPS_SYM_USED_AS_RHS && local_info->is_used_as_rhs()) 
 						count++;
-					} else {
-						//printf("omitting  %s\n", sym->getId()->get_genname());
-					}
+					if (sym_type == GPS_SYM_USED_AS_LHS && local_info->is_used_as_lhs())
+						count++;
+					if (sym_type == GPS_SYM_USED_AS_REDUCE && local_info->is_used_as_reduce())
+						count++;
 				} 
 			}
 			return count;

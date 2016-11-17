@@ -8,6 +8,8 @@
 #include "gm_frontend.h"
 #include "gm_builtin.h"
 
+extern bool gm_read_setup_file(std::map<std::string, std::string>& setup, bool export_env);
+
 const char* gm_charm_gen::get_unbox_method_string(int gm_type) {
 	return "get";
 }     
@@ -91,6 +93,7 @@ bool gm_charm_gen::open_output_files() {
 			gm_backend_error(GM_ERROR_FILEWRITE_ERROR, temp);
 			return false;
 		}
+    Makefile.set_output_file(f_shell);
 
     return true;
 }
@@ -144,8 +147,35 @@ void gm_charm_gen::init_gen_steps() {
 bool gm_charm_gen::do_generate() {
 	if (!open_output_files()) return false;
 	bool b = gm_apply_compiler_stage(get_gen_steps());
+
+	// generate makefile
+	std::map<std::string, std::string> setup;
+	gm_read_setup_file(setup, false);
+	generate_makefile(setup);
+
 	close_output_files();
 	return b;
+}
+
+void gm_charm_gen::generate_makefile(std::map<std::string,std::string>& setup) {
+	const char* gm_top = setup["GM_TOP"].c_str();
+
+	fprintf(f_shell, "GM_TOP= %s\n",gm_top);
+	fprintf(f_shell, "GM_GRAPH= ${GM_TOP}/apps/output_charm/gm_graph\n",gm_top);
+	fprintf(f_shell, "CC= g++\n");
+	fprintf(f_shell, "CFLAGS = -g -O3 -I${GM_GRAPH}/inc -I. \n", gm_top);
+
+	fprintf(f_shell, "LFLAGS = -L${GM_GRAPH}/lib \n");
+	fprintf(f_shell, "include ${GM_TOP}/setup.mk\n");
+	//fprintf(f_shell, "include ${GM_TOP}/apps/output_cpp/common.mk\n");
+
+	fprintf(f_shell, "\n");
+	fprintf(f_shell, "%s.decl.h %s.def.h : %s.ci\n", fname, fname, fname);
+	fprintf(f_shell, "\t$(CHARMC) $<\n");
+
+	fprintf(f_shell, "\n");
+	fprintf(f_shell, "%s : %s.C %s.decl.h %s.def.h\n", fname, fname, fname, fname);
+	fprintf(f_shell, "\t$(CHARMC) ${CFLAGS} $< ${LFLAGS} -o $@", fname, fname);
 }
 
 void gm_charm_gen::generate_lhs_id(ast_id *id) {
@@ -546,6 +576,7 @@ void gm_charm_gen::generate_class(ast_procdef* proc) {
 	generate_pre_include_section();
 	//generate_master_messages();
 	generate_vertex_messages();
+	generate_readonly_vars();
 	generate_master();
 	generate_vertex();
 	generate_post_include_section();
@@ -553,12 +584,26 @@ void gm_charm_gen::generate_class(ast_procdef* proc) {
 	//do_generate_job_configuration();
 }
 
+void gm_charm_gen::generate_readonly_vars() {
+	char temp[1024];
+  ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "CProxy_%s_main_chare main_proxy;", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+	Body.NL();
+
+	sprintf(temp, "readonly CProxy_%s_main_chare main_proxy;", proc->get_procname()->get_genname());
+	Body_ci.pushln(temp);
+	Body_ci.NL();
+}
+
 void gm_charm_gen::generate_pre_include_section() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
+	Body.pushln("#include <limits>");
 	sprintf(temp, "#include \"%s.decl.h\"", proc->get_procname()->get_genname());
 	Body.pushln(temp);
-	Body.pushln("#include \"graphlib.h\"");
+	Body.pushln("#include \"gm_graph.h\"");
+	Body.NL();
 }
 
 void gm_charm_gen::generate_post_include_section() {
@@ -568,6 +613,43 @@ void gm_charm_gen::generate_post_include_section() {
 	Body.pushln(temp);
 }
 
+void gm_charm_gen::generate_expr_inf(ast_expr *e) {
+    char* temp = temp_str;
+    assert(e->get_opclass() == GMEXPR_INF);
+    int t = e->get_type_summary();
+    switch (t) {
+        case GMTYPE_INF:
+        case GMTYPE_INF_INT:
+            sprintf(temp, "%s", e->is_plus_inf() ? 
+								"std::numeric_limits<int>::max()" : 
+								"std::numeric_limits<int>::min()");
+            break;
+        case GMTYPE_INF_LONG:
+            sprintf(temp, "%s", e->is_plus_inf() ? 
+								"std::numeric_limits<long>::max()" : 
+								"std::numeric_limits<long>::min()");
+            break;
+        case GMTYPE_INF_FLOAT:
+            sprintf(temp, "%s", e->is_plus_inf() ? 
+								"std::numeric_limits<float>::max()" : 
+								"std::numeric_limits<float>::min()");
+            break;
+        case GMTYPE_INF_DOUBLE:
+            sprintf(temp, "%s", e->is_plus_inf() ? 
+								"std::numeric_limits<double>::max()" : 
+								"std::numeric_limits<double>::min()");
+            break;
+        default:
+            sprintf(temp, "%s", e->is_plus_inf() ? 
+								"std::numeric_limits<int>::max()" : 
+								"std::numeric_limits<int>::min()");
+            break;
+    }
+    _Body.push(temp);
+    return;
+}
+
 void gm_charm_gen::analyse_symbols(ast_procdef* proc) { 
 	assert(false);
 }
+

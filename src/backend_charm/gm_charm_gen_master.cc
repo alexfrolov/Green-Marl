@@ -34,6 +34,7 @@ void gm_charm_gen::generate_master() {
 	Body.pop_indent();
 	Body.pushln("private:");
 	Body.push_indent();
+	generate_master_properties();
 	generate_master_scalar();
 	Body.pop_indent();
 	end_class(temp);
@@ -48,8 +49,8 @@ void gm_charm_gen::generate_master_properties() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
 	char *name = proc->get_procname()->get_genname();
-	Body.pushln("   gm_charmlib_options opts;");
-	sprintf(temp, "   CProxy_%s_vertex g", name);
+	Body.pushln("   graphlib::Options opts;");
+	sprintf(temp, "   CProxy_%s_vertex g;", name);
 	Body.pushln(temp);
 }
 
@@ -115,8 +116,12 @@ void gm_charm_gen::generate_master_default_ctor_def(char *name) {
 	Body.pushln("graphlib::parse_options(m, &opts);");
 	Body.NL();
 
+	sprintf(temp, "main_proxy = thishandle;");
+	Body.pushln(temp);
+	Body.NL();
+
 	Body.pushln("// create chare array");
-	sprintf(temp, "g = CProxy_%s::ckNew(opts.N);", proc->get_procname()->get_genname());
+	sprintf(temp, "g = CProxy_%s_vertex::ckNew(opts.N);", proc->get_procname()->get_genname());
 	Body.pushln(temp);
 	Body.NL();
 
@@ -160,8 +165,21 @@ void gm_charm_gen::generate_master_entry_method_decls() {
 		gm_gps_basic_block* b = *I;
 		generate_master_entry_method_decl(b, true);
 	}
-
 }
+
+bool gm_charm_gen::has_reduction_target_in_input_args(gm_gps_basic_block *b) {
+	if (b->get_num_entries() == 0)
+		return false;
+
+	assert(b->get_num_entries() == 1); //FIXME:!
+	gm_gps_basic_block* pred = b->get_nth_entry(0);
+
+	if (!pred->is_vertex())
+		return false;
+
+	return (pred->get_scalar_reduce_count() > 0);
+}
+
 void gm_charm_gen::generate_master_entry_method_decl(gm_gps_basic_block *b, bool with_entry) {
   ast_procdef* proc = FE.get_current_proc();
 	char *name = proc->get_procname()->get_genname();
@@ -171,7 +189,10 @@ void gm_charm_gen::generate_master_entry_method_decl(gm_gps_basic_block *b, bool
 	char *entry_name = get_lib()->generate_master_entry_method_name(b);
 	
 	if ((type == GM_GPS_BBTYPE_SEQ) && (b->is_after_vertex()))  {
-		sprintf(temp, "entry void %s(", entry_name);
+		if (has_reduction_target_in_input_args(b)) 
+			sprintf(temp, "entry [reductiontarget] void %s(", entry_name);
+		else
+			sprintf(temp, "entry void %s(", entry_name);
 		Body_ci.push(temp);
 		do_generate_scalar_broadcast_receive(b, Body_ci);
 		Body_ci.pushln(");");
@@ -235,7 +256,7 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		gm_gps_basic_block* next = b->get_nth_exit(0);
 		char *next_entry_name = get_lib()->generate_master_entry_method_name(b->get_nth_exit(0));
 
-		if (next->get_scalar_args_count() > 0 ) {
+		if (next->get_scalar_rhs_count() > 0 ) {
 			Body.pushln("// Wait for contribute");
 			sprintf(temp, "// thisProxy.%s(...) will be called by contribute", next_entry_name);
 			Body.pushln(temp);
@@ -329,7 +350,7 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		Body.pushln("GM_GPS_BBTYPE_IF_COND");
 		assert(false);
 
-		Body.push("boolean _expression_result = ");
+		Body.push("bool _expression_result = ");
 
 		// generate sentences
 		ast_sent* s = b->get_1st_sent();
@@ -366,13 +387,13 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 			Body.pushln("// While (...)");
 
 		Body.NL();
-		Body.push("boolean _expression_result = ");
+		Body.push("bool _expression_result = ");
 		generate_expr(i->get_cond());
 		Body.pushln(";");
 
 		char *next_entry_name_true = get_lib()->generate_master_entry_method_name(b->get_nth_exit(0));
 		char *next_entry_name_false = get_lib()->generate_master_entry_method_name(b->get_nth_exit(1));
-		sprintf(temp, "if (_expression_result) thisProxy.%s;\nelse thisProxy.%s();\n", 
+		sprintf(temp, "if (_expression_result) thisProxy.%s();\nelse thisProxy.%s();\n", 
 				next_entry_name_true, // continue while
 				next_entry_name_false); // exit
 		Body.pushln(temp);
@@ -472,7 +493,7 @@ void gm_charm_gen::do_generate_scalar_broadcast_send(gm_gps_basic_block *b) {
 	sprintf(temp, "// call %s in each chare of g", v_ep_name);
 	Body.pushln(temp);
 
-	if (b->get_scalar_args_count()) {
+	if (b->get_scalar_rhs_count()) {
 		sprintf(temp, "%s_msg *_msg = new %s_msg();", v_ep_name, v_ep_name);
 		Body.pushln(temp);
 		// check if scalar variable is used inside the block
@@ -496,7 +517,7 @@ void gm_charm_gen::do_generate_scalar_broadcast_send(gm_gps_basic_block *b) {
 			if (local_info->is_used_as_rhs()) {
 				// create a broad cast variable
 				//get_lib()->generate_broadcast_send_master(I->first->getId(), Body);
-				sprintf(temp, "_msg.%s = %s;", I->first->getId()->get_genname(), I->first->getId()->get_genname());
+				sprintf(temp, "_msg->%s = %s;", I->first->getId()->get_genname(), I->first->getId()->get_genname());
 				Body.pushln(temp);
 			}
 		}

@@ -1,4 +1,11 @@
 #include "gps_syminfo.h"
+bool gps_syminfo::test_usage_in_BB(int bb_no, int usage, int context, int reduce_type) {
+    for (int i = 0; i < (int) used_BB.size(); i++) {
+        if ((used_BB[i] == bb_no) && (used_type[i] == usage) && (used_context[i] == context)) 
+					return true;
+    }
+		return false;
+}
 
 void gps_syminfo::add_usage_in_BB(int bb_no, int usage, int context, int reduce_type) {
     // if not already in

@@ -122,7 +122,12 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 			return fname;
 		}
 
+
 		virtual void analyse_symbols(ast_procdef* proc);
+
+		virtual void generate_makefile(std::map<std::string,std::string>& setup);
+		virtual void generate_readonly_vars();
+
 		virtual void generate_class(ast_procdef* proc);
 		virtual void generate_master();
 		virtual void generate_master_messages();
@@ -140,7 +145,6 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
     virtual void do_generate_scalar_broadcast_send(gm_gps_basic_block* b);
     virtual void do_generate_scalar_broadcast_receive(gm_gps_basic_block *b, gm_code_writer & Body);
 
-
 		virtual void generate_vertex();
 		virtual void generate_vertex_messages();
 		virtual void generate_vertex_message_def(gm_gps_basic_block *b);
@@ -156,6 +160,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_vertex_properties_type();
 		virtual void generate_edge_properties_type();
 		virtual void generate_vertex_all_properties();
+		virtual void generate_vertex_scalar(gm_gps_basic_block *b);
 
 		virtual void begin_module(char *name, bool is_mainmodule);
 		virtual void end_module(char *name);
@@ -215,6 +220,10 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
     //virtual void generate_sent_call(ast_call *c) { assert(false); }
     //virtual void generate_sent_foreign(ast_foreign *f) { assert(false); }
 
+		virtual void generate_expr_inf(ast_expr *e);
+
+		virtual bool has_reduction_target_in_input_args(gm_gps_basic_block *b);
+
 		void set_master_generate(bool b) {
 			_is_master_gen = b;
 		}
@@ -234,7 +243,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 	protected:
     char* dname;
     char* fname;
-    gm_code_writer Body, Body_ci;
+    gm_code_writer Body, Body_ci, Makefile;
     FILE* f_body, *f_body_ci, *f_shell;
     char temp [1024];
     char* get_temp_buffer_member() {return temp;}

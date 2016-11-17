@@ -89,7 +89,8 @@ void gm_charm_lib::generate_reduce_assign_vertex(ast_assign* a, gm_code_writer& 
 		char *reduce_op_str = create_reduce_op_string(reduce_op_type, id->getTypeInfo());
 		char *entry_method = generate_master_entry_method_name(b->get_nth_exit(0));
 
-		sprintf(temp, "contribute(sizeof(%s), &%s, %s, \nCkCallback(CkIndex_%s_main_chare::%s(), &main_proxy));", 
+		sprintf(temp, "contribute(sizeof(%s), &%s, %s, \n\
+			CkCallback(CkReductionTarget(%s_main_chare, %s), main_proxy));", 
 				get_main()->get_type_string(id->getTypeInfo()->get_typeid()), id->get_genname(),
 				reduce_op_str, proc->get_procname()->get_genname(), entry_method);
 		Body.pushln(temp);
@@ -227,7 +228,7 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 	} else {
 		assert((fe != NULL) && (gm_is_out_nbr_node_iteration(fe->get_iter_type())));
 		Body.pushln("typedef std::list<struct edge>::iterator Iterator;");
-		Body.pushln("for (Iterator e = edges.begin(); e != edges.end(); e++) {");
+		Body.pushln("for (Iterator _e = edges.begin(); _e != edges.end(); _e++) {");
 		Body.pushln("// Sending messages to each neighbor");
 	}
 

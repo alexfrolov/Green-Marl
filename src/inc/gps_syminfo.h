@@ -47,6 +47,9 @@ public:
     void add_usage_in_BB(int bb_no, int usage, int context,  // MASTER, VERTEX, SENDER, RECEIVER
             int reduce_type = GMREDUCE_NULL);
 
+    bool test_usage_in_BB(int bb_no, int usage, int context,  // MASTER, VERTEX, SENDER, RECEIVER
+            int reduce_type = GMREDUCE_NULL);
+
     bool is_used_in_multiple_BB() {
         return _used_in_multiple_BB;
     }
