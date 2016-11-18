@@ -117,7 +117,7 @@ void gm_charm_gen::generate_master_entry_method_do_procname_decl() {
 	sprintf(temp, "entry void do_%s(", name); 
 	Body_ci.push(temp);
 	do_generate_scalar_argument_list(Body_ci, false);
-	Body.pushln(");");
+	Body_ci.pushln(");");
 }
 
 void gm_charm_gen::generate_master_entry_method_do_procname_def() {
