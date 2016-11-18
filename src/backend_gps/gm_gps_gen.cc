@@ -167,11 +167,8 @@ void gm_gps_gen::generate_proc(ast_procdef* proc) {
     write_headers();
     begin_class();
     do_generate_master();
-
     do_generate_vertex();
-
     do_generate_job_configuration();
-
     end_class();
 }
 

@@ -11,7 +11,7 @@ void parse_options(CkArgMsg *m, Options *opts) {
 }
 
 template <typename CProxy_T_vertex, typename Options>
-void create_graph(CProxy_T_vertex & g, Options & opts) {
+static void create_graph(CProxy_T_vertex & g, Options & opts) {
 }
 
 };

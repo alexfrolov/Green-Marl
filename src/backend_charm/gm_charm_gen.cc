@@ -608,7 +608,7 @@ void gm_charm_gen::generate_pre_include_section() {
 	Body.pushln("#include <limits>");
 	sprintf(temp, "#include \"%s.decl.h\"", proc->get_procname()->get_genname());
 	Body.pushln(temp);
-	Body.pushln("#include \"gm_graph.h\"");
+//	Body.pushln("#include \"gm_graph.h\"");
 	Body.NL();
 }
 
