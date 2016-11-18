@@ -90,7 +90,7 @@ void gm_charm_lib::generate_reduce_assign_vertex(ast_assign* a, gm_code_writer& 
 		char *entry_method = generate_master_entry_method_name(b->get_nth_exit(0));
 
 		sprintf(temp, "contribute(sizeof(%s), &%s, %s, \n\
-			CkCallback(CkReductionTarget(%s_main_chare, %s), main_proxy));", 
+			CkCallback(CkReductionTarget(%s_master, %s), master_proxy));", 
 				get_main()->get_type_string(id->getTypeInfo()->get_typeid()), id->get_genname(),
 				reduce_op_str, proc->get_procname()->get_genname(), entry_method);
 		Body.pushln(temp);

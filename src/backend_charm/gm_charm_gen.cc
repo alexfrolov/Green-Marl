@@ -572,7 +572,7 @@ void gm_charm_gen::write_headers() {
 
 void gm_charm_gen::generate_class(ast_procdef* proc) {
 	//write_headers();
-	begin_module(proc->get_procname()->get_genname(), true);
+	begin_module(proc->get_procname()->get_genname(), false);
 	generate_pre_include_section();
 	//generate_master_messages();
 	generate_vertex_messages();
@@ -587,11 +587,17 @@ void gm_charm_gen::generate_class(ast_procdef* proc) {
 void gm_charm_gen::generate_readonly_vars() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
-	sprintf(temp, "CProxy_%s_main_chare main_proxy;", proc->get_procname()->get_genname());
+
+	Body.pushln("// these readonly variables should initialized in mainchare constructor");
+	sprintf(temp, "CProxy_%s_master master_proxy;", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+	sprintf(temp, "CProxy_%s_vertex vertex_proxy;", proc->get_procname()->get_genname());
 	Body.pushln(temp);
 	Body.NL();
 
-	sprintf(temp, "readonly CProxy_%s_main_chare main_proxy;", proc->get_procname()->get_genname());
+	sprintf(temp, "readonly CProxy_%s_master master_proxy;", proc->get_procname()->get_genname());
+	Body_ci.pushln(temp);
+	sprintf(temp, "readonly CProxy_%s_vertex vertex_proxy;", proc->get_procname()->get_genname());
 	Body_ci.pushln(temp);
 	Body_ci.NL();
 }

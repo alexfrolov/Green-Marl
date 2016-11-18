@@ -144,6 +144,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 
     virtual void do_generate_scalar_broadcast_send(gm_gps_basic_block* b);
     virtual void do_generate_scalar_broadcast_receive(gm_gps_basic_block *b, gm_code_writer & Body);
+		virtual void do_generate_scalar_argument_list(gm_code_writer & Body, bool init_locals);
 
 		virtual void generate_vertex();
 		virtual void generate_vertex_messages();

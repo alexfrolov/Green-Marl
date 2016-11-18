@@ -35,7 +35,7 @@ void gm_charm_gen::begin_module(char *name, bool is_mainmodule) {
 		if (is_mainmodule) 
 			Body_ci.push("mainmodule ");
 		else
-			Body_ci.push("main ");
+			Body_ci.push("module ");
     Body_ci.push(name);
     Body_ci.push(" {");
     Body_ci.NL();

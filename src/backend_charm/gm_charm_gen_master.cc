@@ -13,12 +13,12 @@ extern void gm_flush_reproduce();
 void gm_charm_gen::generate_master() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
-	sprintf(temp, "%s_main_chare", proc->get_procname()->get_genname());
+	sprintf(temp, "%s_master", proc->get_procname()->get_genname());
 	set_master_generate(true);
 	
 
 	// generate chare class declaration in .ci file
-	begin_chare(temp, true);
+	begin_chare(temp, false);
 	generate_master_default_ctor_decl(temp);
 	generate_master_entry_method_do_procname_decl();
 	generate_master_entry_method_decls();
@@ -49,9 +49,7 @@ void gm_charm_gen::generate_master_properties() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
 	char *name = proc->get_procname()->get_genname();
-	Body.pushln("   graphlib::Options opts;");
-	sprintf(temp, "   CProxy_%s_vertex g;", name);
-	Body.pushln(temp);
+	Body.pushln("CkCallback done_callback;");
 }
 
 void gm_charm_gen::generate_master_scalar() {
@@ -99,42 +97,16 @@ void gm_charm_gen::generate_master_scalar() {
 
 void gm_charm_gen::generate_master_default_ctor_decl(char *name) {
 	char temp[1024];
-	sprintf(temp, "entry %s(CkArgMsg *m);", name); 
+	sprintf(temp, "entry %s(const CkCallback & cb);", name); 
 	Body_ci.pushln(temp);
 }
 void gm_charm_gen::generate_master_default_ctor_def(char *name) {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
 
-	sprintf(temp, "%s(CkArgMsg *m) {", name); 
+	sprintf(temp, "%s(const CkCallback & cb) {", name); 
 	Body.pushln(temp);
-
-	sprintf(temp, "CkPrintf(\"Running %s: \\n\");", name);
-	Body.pushln(temp);
-	Body.NL();
-
-	Body.pushln("graphlib::parse_options(m, &opts);");
-	Body.NL();
-
-	sprintf(temp, "main_proxy = thishandle;");
-	Body.pushln(temp);
-	Body.NL();
-
-	Body.pushln("// create chare array");
-	sprintf(temp, "g = CProxy_%s_vertex::ckNew(opts.N);", proc->get_procname()->get_genname());
-	Body.pushln(temp);
-	Body.NL();
-
-	Body.pushln("// create graph");
-	sprintf(temp,"graphlib::create_graph<CProxy_%s_vertex>(g, opts);", proc->get_procname()->get_genname());
-	Body.pushln(temp);
-	Body.NL();
-
-	// start computation
-	sprintf(temp, "CkStartQD(CkIndex_%s_main_chare::do_%s(), &thishandle);", 
-			proc->get_procname()->get_genname(),
-			proc->get_procname()->get_genname());
-	Body.pushln(temp);
+	Body.pushln("done_callback = cb;");
 	Body.pushln("}");
 }
 
@@ -142,15 +114,29 @@ void gm_charm_gen::generate_master_entry_method_do_procname_decl() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
 	char *name = proc->get_procname()->get_genname();
-	sprintf(temp, "entry void do_%s();", name); 
-	Body_ci.pushln(temp);
+	sprintf(temp, "entry void do_%s(", name); 
+	Body_ci.push(temp);
+	do_generate_scalar_argument_list(Body_ci, false);
+	Body.pushln(");");
 }
 
 void gm_charm_gen::generate_master_entry_method_do_procname_def() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+
 	char *name = proc->get_procname()->get_genname();
-	sprintf(temp, "void do_%s() {", name);
+	sprintf(temp, "void do_%s(", name);
+	Body.push(temp);
+	do_generate_scalar_argument_list(Body, false);
+	Body.pushln(") {");
+	do_generate_scalar_argument_list(Body, true);
+
+	//call first bb
+	std::list<gm_gps_basic_block*>& bb_blocks = info->get_basic_blocks();
+	assert(bb_blocks.size() > 0);
+	char *entry_name = get_lib()->generate_master_entry_method_name(*bb_blocks.begin());  
+	sprintf(temp, "thisProxy.%s();", entry_name);
 	Body.pushln(temp);
 	Body.pushln("}");
 }
@@ -263,7 +249,7 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 
 		} else {
 			Body.pushln("// Wait for quiescence detection");
-			sprintf(temp, "CkStartQD(CkIndex_%s_main_chare::%s(), &thishandle);", name, next_entry_name);
+			sprintf(temp, "CkStartQD(CkIndex_%s_master::%s(), &thishandle);", name, next_entry_name);
 			Body.pushln(temp);
 		}
 
@@ -327,7 +313,7 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		}
 
 		if (b->get_num_exits() == 0) {
-			Body.pushln("CkExit();");
+			Body.pushln("done_callback.send();");
 		} else {
 			char *next_entry_name = get_lib()->generate_master_entry_method_name(b->get_nth_exit(0));
 			int n = b->get_nth_exit(0)->get_id();
@@ -521,17 +507,38 @@ void gm_charm_gen::do_generate_scalar_broadcast_send(gm_gps_basic_block *b) {
 				Body.pushln(temp);
 			}
 		}
-		sprintf(temp, "g.%s(_msg);", v_ep_name);
+		sprintf(temp, "vertex_proxy.%s(_msg);", v_ep_name);
 		Body.pushln(temp);
 	} else {
-		sprintf(temp, "g.%s();", v_ep_name);
+		sprintf(temp, "vertex_proxy.%s();", v_ep_name);
 		Body.pushln(temp);
 	}
 
-
-
 	delete [] v_ep_name;
+}
 
+void gm_charm_gen::do_generate_scalar_argument_list(gm_code_writer & Body, bool init_locals) {
+
+  ast_procdef* proc = FE.get_current_proc();
+	gm_symtab* args = proc->get_symtab_var();
+	assert(args != NULL);
+	std::set<gm_symtab_entry*>& syms = args->get_entries();
+	std::set<gm_symtab_entry*>::iterator I;
+	for (I = syms.begin(); I != syms.end(); I++) {
+		gm_symtab_entry* s = *I;
+
+		// input argument
+		if (!s->getType()->is_primitive() && (!s->getType()->is_node())) continue;
+
+		if (init_locals) {
+			sprintf(temp, "this->%s = %s;", s->getId()->get_genname(), s->getId()->get_genname());
+			Body.pushln(temp);
+		}
+		else {
+			sprintf(temp, "%s %s", get_type_string(s->getType(), true), s->getId()->get_genname());
+			Body.push(temp);
+		}
+	}
 }
 
 void gm_charm_gen::do_generate_scalar_broadcast_receive(gm_gps_basic_block *b, gm_code_writer & Body) {

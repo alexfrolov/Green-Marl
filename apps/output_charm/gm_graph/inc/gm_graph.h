@@ -10,8 +10,8 @@ struct Options {
 void parse_options(CkArgMsg *m, Options *opts) {
 }
 
-template <typename CProxy_T_vertex>
-void create_graph(CProxy_T_vertex & g, const Options & opts) {
+template <typename CProxy_T_vertex, typename Options>
+void create_graph(CProxy_T_vertex & g, Options & opts) {
 }
 
 };
