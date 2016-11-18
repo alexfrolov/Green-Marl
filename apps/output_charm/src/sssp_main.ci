@@ -1,0 +1,10 @@
+mainmodule sssp_main {
+	extern module sssp;
+	readonly CProxy_Main main_proxy;
+
+	mainchare Main {
+		entry Main(CkArgMsg *m);
+		entry void do_sssp();
+		entry void done();
+	};
+};
