@@ -227,7 +227,10 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		}
 	} else {
 		assert((fe != NULL) && (gm_is_out_nbr_node_iteration(fe->get_iter_type())));
-		Body.pushln("typedef std::list<struct edge>::iterator Iterator;");
+		ast_procdef* proc = FE.get_current_proc();
+		sprintf(temp, "typedef std::list<struct %s_edge>::iterator Iterator;", 
+			proc->get_procname()->get_genname());
+		Body.pushln(temp);
 		Body.pushln("for (Iterator _e = edges.begin(); _e != edges.end(); _e++) {");
 		Body.pushln("// Sending messages to each neighbor");
 	}

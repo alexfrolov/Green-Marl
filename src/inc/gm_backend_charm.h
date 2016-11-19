@@ -146,13 +146,17 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
     virtual void do_generate_scalar_broadcast_receive(gm_gps_basic_block *b, gm_code_writer & Body);
 		virtual void do_generate_scalar_argument_list(gm_code_writer & Body, bool init_locals);
 
+		virtual void generate_edge();
+
 		virtual void generate_vertex();
 		virtual void generate_vertex_messages();
 		virtual void generate_vertex_message_def(gm_gps_basic_block *b);
 		virtual void generate_vertex_message_decl_ci(gm_gps_basic_block *b);
 		virtual void generate_vertex_entry_method_decls();
+		virtual void generate_vertex_entry_method_decls_aux();
 		virtual void generate_vertex_entry_method_decl(gm_gps_basic_block *b, bool with_entry);
 		virtual void generate_vertex_entry_methods();
+		virtual void generate_vertex_entry_methods_aux();
 		virtual void generate_vertex_entry_method(gm_gps_basic_block *b);
 		virtual void generate_vertex_entry_method_args_scala(gm_gps_basic_block *b, bool with_assign);
 		virtual void generate_vertex_entry_method_args_recv(gm_gps_basic_block *b, bool with_assign);

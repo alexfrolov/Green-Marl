@@ -1,0 +1,10 @@
+module gm_graph {
+	namespace graphlib {
+		template <typename Graph>
+		group rmat_generator {
+			entry rmat_generator();
+			entry rmat_generator(Graph & g, rmat_config & cfg, bool strongscale);
+			entry void generate();
+		};
+	}
+};

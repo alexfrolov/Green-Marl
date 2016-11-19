@@ -1,5 +1,6 @@
 mainmodule sssp_main {
 	extern module sssp;
+	extern module gm_graph;
 	readonly CProxy_Main main_proxy;
 
 	mainchare Main {
@@ -7,4 +8,7 @@ mainmodule sssp_main {
 		entry void do_sssp();
 		entry void done();
 	};
+
+	//FIXME:charmxi bug
+	group graphlib__rmat_generator<sssp_graph>;
 };

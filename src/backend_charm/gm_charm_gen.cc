@@ -578,6 +578,7 @@ void gm_charm_gen::generate_class(ast_procdef* proc) {
 	generate_vertex_messages();
 	generate_readonly_vars();
 	generate_master();
+	generate_edge();
 	generate_vertex();
 	generate_post_include_section();
 	end_module(proc->get_procname()->get_genname());
@@ -605,6 +606,9 @@ void gm_charm_gen::generate_readonly_vars() {
 void gm_charm_gen::generate_pre_include_section() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "struct %s_edge;", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+
 	Body.pushln("#include <limits>");
 	sprintf(temp, "#include \"%s.decl.h\"", proc->get_procname()->get_genname());
 	Body.pushln(temp);

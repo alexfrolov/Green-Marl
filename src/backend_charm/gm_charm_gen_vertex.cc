@@ -20,6 +20,14 @@ static bool is_symbol_defined_in_bb(gm_gps_basic_block* b, gm_symtab_entry *e) {
 		return true;
 }
 
+void gm_charm_gen::generate_vertex_entry_method_decls_aux() {
+	char temp[1024];
+  ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "entry void add_edge(const %s_edge &e);", 
+			proc->get_procname()->get_genname());
+	Body_ci.pushln(temp);
+}
+
 void gm_charm_gen::generate_vertex_entry_method_decls() {
 	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 	std::list<gm_gps_basic_block*>& bb_blocks = info->get_basic_blocks();
@@ -54,6 +62,12 @@ void gm_charm_gen::generate_vertex_entry_method_decl(gm_gps_basic_block* b, bool
 	delete [] entry_name;
 }
 
+void gm_charm_gen::generate_edge() {
+	char temp[1024];
+  ast_procdef* proc = FE.get_current_proc();
+	generate_edge_properties_type();
+}
+
 void gm_charm_gen::generate_vertex() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
@@ -63,19 +77,20 @@ void gm_charm_gen::generate_vertex() {
 	begin_chare_array(temp, 1);
 	generate_vertex_default_ctor_decl(temp);
 	generate_vertex_entry_method_decls();
+	generate_vertex_entry_method_decls_aux();
 	end_chare_array(temp);
 
 	// generate chare class implementation in .C file
 	begin_class(temp);
 	Body.pushln("public:");
 	Body.push_indent();
-	generate_edge_properties_type();
 	generate_vertex_properties_type();
 
 	Body.pop_indent();
 	Body.pushln("public:");
 	Body.push_indent();
 	generate_vertex_default_ctor_def(temp);
+	generate_vertex_entry_methods_aux();
 	generate_vertex_entry_methods();
 	Body.pop_indent();
 
@@ -88,7 +103,10 @@ void gm_charm_gen::generate_vertex() {
 }
 
 void gm_charm_gen::generate_vertex_all_properties() {
-	Body.pushln("std::list<struct edge> edges;");
+	char temp[1024];
+  ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "std::list<struct %s_edge> edges;", proc->get_procname()->get_genname());
+	Body.pushln(temp);
 	Body.pushln("struct vertex_properties props;");
 }
 
@@ -165,6 +183,14 @@ void gm_charm_gen::generate_vertex_message_decl_ci(gm_gps_basic_block *b) {
 		Body_ci.pushln(temp);
 	}
 	delete [] entry_name;
+}
+
+void gm_charm_gen::generate_vertex_entry_methods_aux() {
+	char temp[1024];
+  ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "void add_edge(const %s_edge &e) { edges.push_back(e); } ", 
+			proc->get_procname()->get_genname());
+	Body.pushln(temp);
 }
 
 void gm_charm_gen::generate_vertex_entry_methods() {
@@ -438,9 +464,12 @@ void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b,
 
 void gm_charm_gen::generate_edge_properties_type() {
 	char temp[1024];
-	begin_struct("edge");
+  ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "%s_edge", proc->get_procname()->get_genname());
+	begin_struct(temp);
 	Body.pushln("uint64_t v;");
 	begin_struct("edge_properties");
+
 	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
   std::set<gm_symtab_entry*>& prop = info->get_edge_prop_symbols();
 	std::set<gm_symtab_entry*>::iterator I;
@@ -451,8 +480,25 @@ void gm_charm_gen::generate_edge_properties_type() {
 					sym->getId()->get_genname());
 			Body.pushln(temp);
 	}
+	Body.pushln("void pup(PUP::er & p) {");
+	for (I = prop.begin(); I != prop.end(); I++) {
+			gm_symtab_entry* sym = *I;
+			sprintf(temp, "p | %s;", sym->getId()->get_genname());
+			Body.pushln(temp);
+	}
+	Body.pushln("}");
 	end_struct("edge_properties");
 	Body.pushln("struct edge_properties props;");
+	// ctors
+	sprintf(temp, "%s_edge () {} ", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+	sprintf(temp, "%s_edge (uint64_t v) : v(v) {} ", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+	sprintf(temp, "%s_edge (uint64_t v, const struct edge_properties &props) : \
+			v(v), props(props) {} ", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+
+	Body.pushln("void pup(PUP::er & p) { p | v; p | props; }");
 	end_struct("edge");
 }
 
