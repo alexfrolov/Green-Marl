@@ -34,6 +34,6 @@ ${BINDIR}/% : %_main.o
 
 
 clean:
-	rm -f ${BINDIR}/*
+	rm -f charmrun ${BINDIR}/*
 	rm -f *.o *.decl.h *.def.h
 	rm -f ${GENDIR}/*.o ${GENDIR}/*.decl.h ${GENDIR}/*.def.h

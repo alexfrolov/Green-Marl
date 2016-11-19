@@ -24,13 +24,16 @@ class sssp_graph {
 		void pup(PUP::er &p) {
 			p | vertex_proxy;
 		}
+		static sssp_edge::edge_properties generate_edge_properties() {
+			sssp_edge::edge_properties props;
+			props.len = random() % 10;
+			return props;
+		}
 	private:
 		proxy vertex_proxy;
 };
 
 class Main : public CBase_Main {
-	private:
-		Options opts;
 	public:
 		Main(CkArgMsg *m) {
 			parse_options(m, &opts);
@@ -43,12 +46,15 @@ class Main : public CBase_Main {
 		}
 		void do_sssp() {
 			srandom(123);
-			CmiUInt8 root = random() % opts.N;
+			root = random() % opts.N;
 			master_proxy.do_sssp(root);
 		}
 		void done() {
 			CkPrintf("Done.\n");
 			CkExit();
 		}
+	private:
+		Options opts;
+		CmiUInt8 root;
 };
 #include "sssp_main.def.h"

@@ -31,7 +31,9 @@ class rmat_generator : public CBase_rmat_generator <Graph> {
 			g(g), cfg(cfg), strongscale(strongscale) {}
 		void generate();
 		void addEdge(const std::pair<uint64_t, uint64_t> & e) {
-			g.get_proxy()[e.first].add_edge(typename Graph::edge(e.second/*, w*/));
+			//CkPrintf("adding edge (%lld, %lld)\n", e.first, e.second);
+			g.get_proxy()[e.first].add_edge(typename Graph::edge(e.second, 
+						Graph::generate_edge_properties()));
 		}
 	private:
 		Graph g;
@@ -62,7 +64,6 @@ void rmat_generator<Graph>::generate() {
 	else
 		N = (1 << cfg.scale) * CkNumPes();
 	M = N * cfg.K;
-
 
 	boost::uniform_int<uint64_t> rand_64(0, std::numeric_limits<uint64_t>::max());
 	uint64_t a = rand_64(gen);
