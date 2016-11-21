@@ -26,12 +26,14 @@ class sssp_graph {
 		}
 		static sssp_edge::edge_properties generate_edge_properties() {
 			sssp_edge::edge_properties props;
-			props.len = random() % 10;
+			props.len = 1 + random() % 10;
 			return props;
 		}
 	private:
 		proxy vertex_proxy;
 };
+
+bool verify = true;
 
 class Main : public CBase_Main {
 	public:
@@ -41,8 +43,9 @@ class Main : public CBase_Main {
 			CkPrintf("Hello.\n");
 			vertex_proxy = CProxy_sssp_vertex::ckNew(opts.N);
 			master_proxy = CProxy_sssp_master::ckNew(CkCallback(CkIndex_Main::done(), thisProxy));
-			graphlib::create_rmat_graph<sssp_graph>(sssp_graph(vertex_proxy), opts.rmat_cfg);
-			CkStartQD(CkCallback(CkIndex_Main::done(), thisProxy));
+			//graphlib::create_rmat_graph<sssp_graph>(sssp_graph(vertex_proxy), opts.rmat_cfg);
+			graphlib::create_random_graph<sssp_graph>(sssp_graph(vertex_proxy), opts.random_cfg);
+			CkStartQD(CkCallback(CkIndex_Main::do_sssp(), thisProxy));
 		}
 		void do_sssp() {
 			srandom(123);
@@ -50,7 +53,17 @@ class Main : public CBase_Main {
 			master_proxy.do_sssp(root);
 		}
 		void done() {
-			CkPrintf("Done.\n");
+			CkPrintf("sssp done.\n");
+			if (verify) {
+				CkPrintf("start verification...\n");
+				vertex_proxy.verify();
+				vertex_proxy.print();
+				CkStartQD(CkCallback(CkIndex_Main::exit(), thisProxy));
+			} else
+				CkExit();
+		}
+		void exit() {
+			CkPrintf("done.\n");
 			CkExit();
 		}
 	private:

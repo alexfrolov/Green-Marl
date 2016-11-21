@@ -28,8 +28,13 @@ else
       TARGET=giraph
       tdir=output_giraph
     else
+     ifeq ($(env),charm)
+      TARGET=charm
+      tdir=output_charm
+     else
       echo "unknown target environment"
       false
+     endif
     endif
    endif
   endif

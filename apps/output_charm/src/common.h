@@ -4,11 +4,14 @@
 
 struct Options {
 	graphlib::rmat_config rmat_cfg;
+	graphlib::random_config random_cfg;
 	int N;
 	Options() {
 		// default values
 		rmat_cfg.scale = 10;
 		rmat_cfg.K = 16;
+		random_cfg.scale = 10;
+		random_cfg.K = 64;
 		N = 16;
 	}
 };

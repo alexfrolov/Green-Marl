@@ -195,6 +195,7 @@ int main(int argc, char** argv) {
 		BACK_END = &JAVA_BE;
 #endif
 		} else if (gm_is_same_string(name, "charm")) {
+        PREGEL_BE = &GPS_BE; // FIXME: should be CHARM_BE! 
         BACK_END = &CHARM_BE;
         OPTIONS.set_arg_bool(GMARGFLAG_FLIP_PULL, true);
 		} else {

@@ -3,11 +3,16 @@ Procedure sssp(G:Graph, dist:N_P<Int>, len:E_P<Int>, root: Node)
     N_P<Bool> updated;
     N_P<Bool> updated_nxt;
     N_P<Int>  dist_nxt;
+    N_P<Node> parent;
+    N_P<Node> parent_nxt;
+
     Bool fin = False;
 
     G.dist = (G == root) ? 0 : +INF;
     G.updated = (G == root) ? True: False;
+		G.parent = (G == root) ? root : NIL;
     G.dist_nxt = G.dist;
+		G.parent_nxt = G.parent;
     G.updated_nxt = G.updated;
 
     While(!fin) {
@@ -17,13 +22,15 @@ Procedure sssp(G:Graph, dist:N_P<Int>, len:E_P<Int>, root: Node)
             Foreach(s: n.Nbrs) {
                 Edge e = s.ToEdge(); // the edge to s
                 // updated_nxt becomes true only if dist_nxt is actually updated
-                <s.dist_nxt; s.updated_nxt> min= <n.dist + e.len; True>; 
+                <s.dist_nxt; s.updated_nxt, s.parent_nxt> min= <n.dist + e.len; True, n>; 
             }
         }
 
         G.dist = G.dist_nxt;
         G.updated = G.updated_nxt;
+        G.parent  = G.parent_nxt;
         G.updated_nxt = False;
+        G.parent_nxt = NIL;
         fin = ! Exist(n: G.Nodes){n.updated};
     }
 }

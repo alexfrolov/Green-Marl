@@ -7,8 +7,10 @@ mainmodule sssp_main {
 		entry Main(CkArgMsg *m);
 		entry void do_sssp();
 		entry void done();
+		entry void exit();
 	};
 
 	//FIXME:charmxi bug
 	group graphlib__rmat_generator<sssp_graph>;
+	group graphlib__random_generator<sssp_graph>;
 };

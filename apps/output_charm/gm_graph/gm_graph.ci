@@ -6,5 +6,11 @@ module gm_graph {
 			entry rmat_generator(Graph & g, rmat_config & cfg, bool strongscale);
 			entry void generate();
 		};
+		template <typename Graph>
+		group random_generator {
+			entry random_generator();
+			entry random_generator(Graph & g, random_config & cfg, bool strongscale);
+			entry void generate();
+		};
 	}
 };
