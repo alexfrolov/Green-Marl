@@ -29,6 +29,8 @@ class gm_charm_lib : public gm_graph_library {
     }
 		bool do_local_optimize();
 
+		void generate_expr_nil(ast_expr* e, gm_code_writer& Body);
+
     //virtual void generate_broadcast_reduce_initialize_master(ast_id* id, gm_code_writer& Body, int reduce_type, const char* base_value);
     //virtual void generate_broadcast_prepare(gm_code_writer& Body);
     //virtual void generate_broadcast_state_master(const char* state_var, gm_code_writer& Body);

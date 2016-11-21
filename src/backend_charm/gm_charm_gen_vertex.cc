@@ -69,19 +69,25 @@ void gm_charm_gen::generate_edge() {
 }
 
 void gm_charm_gen::generate_vertex() {
+	char name[1024];
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
-	sprintf(temp, "%s_vertex", proc->get_procname()->get_genname());
+	sprintf(name, "%s_vertex", proc->get_procname()->get_genname());
 
 	// generate chare class declaration in .ci file
-	begin_chare_array(temp, 1);
-	generate_vertex_default_ctor_decl(temp);
+	begin_chare_array(name, 1);
+	generate_vertex_default_ctor_decl(name);
 	generate_vertex_entry_method_decls();
 	generate_vertex_entry_method_decls_aux();
-	end_chare_array(temp);
+
+	Body_ci.pushln("#ifdef HOOK_ENABLE");
+	sprintf(temp, "   #include \"%s_hook.ci\"", proc->get_procname()->get_genname());
+	Body_ci.pushln(temp);
+	Body_ci.pushln("#endif");
+	end_chare_array(name);
 
 	// generate chare class implementation in .C file
-	begin_class(temp);
+	begin_class(name);
 	Body.pushln("public:");
 	Body.push_indent();
 	generate_vertex_properties_type();
@@ -89,7 +95,7 @@ void gm_charm_gen::generate_vertex() {
 	Body.pop_indent();
 	Body.pushln("public:");
 	Body.push_indent();
-	generate_vertex_default_ctor_def(temp);
+	generate_vertex_default_ctor_def(name);
 	generate_vertex_entry_methods_aux();
 	generate_vertex_entry_methods();
 	Body.pop_indent();
@@ -99,7 +105,13 @@ void gm_charm_gen::generate_vertex() {
 	generate_vertex_all_properties();
 	Body.pop_indent();
 
-	end_class(temp);
+	// add user hook
+	Body.pushln("#ifdef HOOK_ENABLE");
+	sprintf(temp, "   #include \"%s_hook.C\"", proc->get_procname()->get_genname());
+	Body.pushln(temp);
+	Body.pushln("#endif");
+
+	end_class(name);
 }
 
 void gm_charm_gen::generate_vertex_all_properties() {
