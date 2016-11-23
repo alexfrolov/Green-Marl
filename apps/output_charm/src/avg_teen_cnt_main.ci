@@ -1,0 +1,16 @@
+mainmodule avg_teen_cnt_main {
+	extern module avg_teen_cnt;
+	extern module gm_graph;
+	readonly CProxy_Main main_proxy;
+
+	mainchare Main {
+		entry Main(CkArgMsg *m);
+		entry void do_avg_teen_cnt();
+		entry void done();
+		entry void exit();
+	};
+
+	//FIXME:charmxi bug
+	group graphlib__rmat_generator<avg_teen_cnt_graph>;
+	group graphlib__random_generator<avg_teen_cnt_graph>;
+};
