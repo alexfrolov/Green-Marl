@@ -189,7 +189,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
     virtual void generate_expr_minmax(ast_expr* e);
     virtual void generate_expr_abs(ast_expr* e);
     virtual void generate_expr_nil(ast_expr* e);
-    virtual void generate_expr_type_conversion(ast_expr *e) { assert(false); }
+    //virtual void generate_expr_type_conversion(ast_expr *e);
 
     virtual void generate_scalar_var_def(gm_symtab_entry* sym, bool finish_sent);
 

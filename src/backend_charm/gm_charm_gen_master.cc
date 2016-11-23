@@ -286,7 +286,6 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 			gps_syminfo* global_info = (gps_syminfo*) sym->find_info(GPS_TAG_BB_USAGE);
 
 			if (!global_info->is_used_in_multiple_BB()) {
-				assert(false); // check it later
 				generate_scalar_var_def(sym, true);
 			}
 		}

@@ -12,7 +12,7 @@ char *create_reduce_op_string(int reduce_op_type, ast_typedecl *type) {
 			assert(false);
 			break;
 		case GMREDUCE_PLUS:
-			assert(false);
+			sprintf(temp, "CkReduction::sum_%s", CHARM_BE.get_type_string(type->get_typeid()));
 			break;
 		case GMREDUCE_MULT:
 			assert(false);
@@ -217,27 +217,13 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 
 	gm_gps_communication_size_info& SINFO = *(info->find_communication_size_info(U));
 
-	bool need_separate_message = (fe == NULL) ? false : fe->find_info_bool(GPS_FLAG_EDGE_DEFINING_INNER);
-	bool is_in_neighbors = (fe != NULL) && (gm_is_in_nbr_node_iteration(fe->get_iter_type()));
-
-	if (!need_separate_message) {
-		assert(false);
-		Body.pushln("// Sending messages to all neighbors (if there is a neighbor)");
-		if (is_in_neighbors) {
-			sprintf(temp, "if (%s.%s.length > 0) {", STATE_SHORT_CUT, GPS_REV_NODE_ID);
-			Body.pushln(temp);
-		} else {
-			Body.pushln("if (getNeighborsSize() > 0) {");
-		}
-	} else {
-		assert((fe != NULL) && (gm_is_out_nbr_node_iteration(fe->get_iter_type())));
-		ast_procdef* proc = FE.get_current_proc();
-		sprintf(temp, "typedef std::list<struct %s_edge>::iterator Iterator;", 
+	assert((fe != NULL) && (gm_is_out_nbr_node_iteration(fe->get_iter_type())));
+	ast_procdef* proc = FE.get_current_proc();
+	sprintf(temp, "typedef std::list<struct %s_edge>::iterator Iterator;", 
 			proc->get_procname()->get_genname());
-		Body.pushln(temp);
-		Body.pushln("for (Iterator _e = edges.begin(); _e != edges.end(); _e++) {");
-		Body.pushln("// Sending messages to each neighbor");
-	}
+	Body.pushln(temp);
+	Body.pushln("for (Iterator _e = edges.begin(); _e != edges.end(); _e++) {");
+	Body.pushln("// Sending messages to each neighbor");
 
 	// check if any edge updates that should be done before message sending
 	std::list<ast_sent*> sents_after_message;
@@ -300,32 +286,20 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		Body.pushln(";");
 	}
 
-	if (!need_separate_message) {
-		if (is_in_neighbors) {
-			assert(false);
-			sprintf(temp, "sendMessages(%s.%s, _msg);", STATE_SHORT_CUT, GPS_REV_NODE_ID);
-			Body.pushln(temp);
-		} else {
-			sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", b->get_id());
-			Body.pushln(temp);
+	sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", entry_name);
+	Body.pushln(temp);
+	if (sents_after_message.size() > 0) {
+		Body.NL();
+		std::list<ast_sent*>::iterator I;
+		for (I = sents_after_message.begin(); I != sents_after_message.end(); I++) {
+			ast_sent*s = *I;
+			get_main()->generate_sent(s);
 		}
-		Body.pushln("}");
-	} else {
-		//Body.pushln("thisProxy[_e->v].entry_method_bb??(_msg);");
-			sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", entry_name);
-			Body.pushln(temp);
-		if (sents_after_message.size() > 0) {
-			Body.NL();
-			std::list<ast_sent*>::iterator I;
-			for (I = sents_after_message.begin(); I != sents_after_message.end(); I++) {
-				ast_sent*s = *I;
-				get_main()->generate_sent(s);
-			}
 
-			sents_after_message.clear();
-		}
-		Body.pushln("}");
+		sents_after_message.clear();
 	}
+	Body.pushln("}");
+
 	assert(sents_after_message.size() == 0);
 	delete [] entry_name;
 }

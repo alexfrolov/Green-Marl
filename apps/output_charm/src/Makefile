@@ -10,7 +10,7 @@ include ${GM_TOP}/setup.mk
 .SUFFIXES: 
 .SUFFIXES: .decl.h .def.h .xi .ci
 
-all: ${BINDIR}/sssp
+all: ${BINDIR}/sssp ${BINDIR}/avg_teen_cnt
 
 ${BINDIR}/% : %_main.o 
 	${CHARMC} $^ ${LFLAGS} -o $@
