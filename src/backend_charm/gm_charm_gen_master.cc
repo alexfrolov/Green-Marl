@@ -20,7 +20,6 @@ void gm_charm_gen::generate_master() {
 	// generate chare class declaration in .ci file
 	begin_chare(temp, false);
 	generate_master_default_ctor_decl(temp);
-	generate_master_entry_method_do_procname_decl();
 	generate_master_entry_method_decls();
 	end_chare(temp);
 
@@ -29,7 +28,6 @@ void gm_charm_gen::generate_master() {
 	Body.pushln("public:");
 	Body.push_indent();
 	generate_master_default_ctor_def(temp);
-	generate_master_entry_method_do_procname_def();
 	generate_master_entry_methods();
 	Body.pop_indent();
 	Body.pushln("private:");
@@ -38,6 +36,7 @@ void gm_charm_gen::generate_master() {
 	generate_master_scalar();
 	Body.pop_indent();
 	end_class(temp);
+
 	set_master_generate(false);
 }
 
@@ -142,6 +141,40 @@ void gm_charm_gen::generate_master_entry_method_do_procname_def() {
 }
 
 void gm_charm_gen::generate_master_entry_method_decls() {
+
+	// generate entry method for running programm (do_<prog_name>)
+	generate_master_entry_method_do_procname_decl();
+
+	// generate entry method fors reduction variables
+	generate_master_entry_method_reduction_vars_decl();
+
+	// generate entry methods for state machine 
+	generate_master_entry_method_state_machine_decl();
+
+}
+void gm_charm_gen::generate_master_entry_method_reduction_vars_decl() {
+	char temp [1024];
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	std::set<gm_symtab_entry*>& scalar = info->get_scalar_symbols();
+	std::set<gm_symtab_entry*>::iterator I;
+
+	for (I = scalar.begin(); I != scalar.end(); I++) {
+		gm_symtab_entry* sym = *I;
+		gps_syminfo* syminfo = (gps_syminfo*) sym->find_info(GPS_TAG_BB_USAGE);
+		assert(syminfo!=NULL);
+		// we need shared variable
+		//if ((syminfo->is_used_in_vertex() || syminfo->is_used_in_receiver()) && (syminfo->is_scoped_global())) {
+		if (syminfo->is_used_in_vertex() && syminfo->is_used_as_reduce() && (syminfo->is_scoped_global())) {
+			sprintf(temp, "entry [reductiontarget] void __reduction_%s (%s %s);", 
+					sym->getId()->get_genname(),
+					get_type_string(sym->getType()->get_typeid()),
+					sym->getId()->get_genname());
+			Body_ci.pushln(temp);
+		}
+	}
+}
+
+void gm_charm_gen::generate_master_entry_method_state_machine_decl() {
 	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 
 	std::list<gm_gps_basic_block*>& bb_blocks = info->get_basic_blocks();
@@ -152,6 +185,7 @@ void gm_charm_gen::generate_master_entry_method_decls() {
 		generate_master_entry_method_decl(b, true);
 	}
 }
+
 
 bool gm_charm_gen::has_reduction_target_in_input_args(gm_gps_basic_block *b) {
 	if (b->get_num_entries() == 0)
@@ -174,7 +208,7 @@ void gm_charm_gen::generate_master_entry_method_decl(gm_gps_basic_block *b, bool
 	char temp[1024];
 	char *entry_name = get_lib()->generate_master_entry_method_name(b);
 	
-	if ((type == GM_GPS_BBTYPE_SEQ) && (b->is_after_vertex()))  {
+	/*if ((type == GM_GPS_BBTYPE_SEQ) && (b->is_after_vertex()))  {
 		if (has_reduction_target_in_input_args(b)) 
 			sprintf(temp, "entry [reductiontarget] void %s(", entry_name);
 		else
@@ -182,24 +216,58 @@ void gm_charm_gen::generate_master_entry_method_decl(gm_gps_basic_block *b, bool
 		Body_ci.push(temp);
 		do_generate_scalar_broadcast_receive(b, Body_ci);
 		Body_ci.pushln(");");
-	} else {
+	} else {*/
 		sprintf(temp, "entry void %s();", entry_name);
 		Body_ci.pushln(temp);
-	}
+	//}
 	delete [] entry_name;
 }
 void gm_charm_gen::generate_master_entry_methods() {
-	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	// generate entry method for running programm (do_<prog_name>)
+	generate_master_entry_method_do_procname_def();
 
+	// generate entry method fors reduction variables
+	generate_master_entry_method_reduction_vars();
+
+	// generate entry methods for state machine 
+	generate_master_entry_method_state_machine();
+
+}
+
+void gm_charm_gen::generate_master_entry_method_reduction_vars() {
+	char temp [1024];
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	std::set<gm_symtab_entry*>& scalar = info->get_scalar_symbols();
+	std::set<gm_symtab_entry*>::iterator I;
+
+	for (I = scalar.begin(); I != scalar.end(); I++) {
+		gm_symtab_entry* sym = *I;
+		gps_syminfo* syminfo = (gps_syminfo*) sym->find_info(GPS_TAG_BB_USAGE);
+		assert(syminfo!=NULL);
+		// we need shared variable
+		//if ((syminfo->is_used_in_vertex() || syminfo->is_used_in_receiver()) && (syminfo->is_scoped_global())) {
+		if (syminfo->is_used_in_vertex() && syminfo->is_used_as_reduce() && (syminfo->is_scoped_global())) {
+			sprintf(temp, "void __reduction_%s (%s %s) { this->%s = %s; }", 
+					sym->getId()->get_genname(),
+					get_type_string(sym->getType()->get_typeid()),
+					sym->getId()->get_genname(),
+					sym->getId()->get_genname(),
+					sym->getId()->get_genname());
+			Body.pushln(temp);
+		}
+	}
+}
+
+void gm_charm_gen::generate_master_entry_method_state_machine() {
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 	std::list<gm_gps_basic_block*>& bb_blocks = info->get_basic_blocks();
 	std::list<gm_gps_basic_block*>::iterator I;
-
 	for (I = bb_blocks.begin(); I != bb_blocks.end(); I++) {
 		gm_gps_basic_block* b = *I;
 		generate_master_entry_method(b);
 	}
-
 }
+
 void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
   ast_procdef* proc = FE.get_current_proc();
 	char *name = proc->get_procname()->get_genname();
@@ -242,16 +310,16 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		gm_gps_basic_block* next = b->get_nth_exit(0);
 		char *next_entry_name = get_lib()->generate_master_entry_method_name(b->get_nth_exit(0));
 
-		if (next->get_scalar_rhs_count() > 0 ) {
+		/*if (next->get_scalar_rhs_count() > 0 ) {
 			Body.pushln("// Wait for contribute");
 			sprintf(temp, "// thisProxy.%s(...) will be called by contribute", next_entry_name);
 			Body.pushln(temp);
 
-		} else {
+		} else {*/
 			Body.pushln("// Wait for quiescence detection");
 			sprintf(temp, "CkStartQD(CkIndex_%s_master::%s(), &thishandle);", name, next_entry_name);
 			Body.pushln(temp);
-		}
+		//}
 
 		delete [] next_entry_name;
 
@@ -260,7 +328,7 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		if (b->is_after_vertex()) {
 			//Body.push("/*entries-->*/");
 			assert(b->get_num_entries() == 1);
-			do_generate_scalar_broadcast_receive(b, Body);
+			//do_generate_scalar_broadcast_receive(b, Body);
 			//assert(false);
 		}
 

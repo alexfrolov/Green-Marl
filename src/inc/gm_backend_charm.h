@@ -143,6 +143,10 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_master_entry_method(gm_gps_basic_block *b);
 		virtual void generate_master_entry_method_do_procname_decl();
 		virtual void generate_master_entry_method_do_procname_def();
+		virtual void generate_master_entry_method_reduction_vars();
+		virtual void generate_master_entry_method_reduction_vars_decl();
+		virtual void generate_master_entry_method_state_machine();
+		virtual void generate_master_entry_method_state_machine_decl();
 
     virtual void do_generate_scalar_broadcast_send(gm_gps_basic_block* b);
     virtual void do_generate_scalar_broadcast_receive(gm_gps_basic_block *b, gm_code_writer & Body);
@@ -190,6 +194,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
     virtual void generate_expr_abs(ast_expr* e);
     virtual void generate_expr_nil(ast_expr* e);
     //virtual void generate_expr_type_conversion(ast_expr *e);
+		virtual void generate_sent_return(ast_return *r);
 
     virtual void generate_scalar_var_def(gm_symtab_entry* sym, bool finish_sent);
 

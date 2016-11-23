@@ -313,6 +313,9 @@ void gm_charm_gen::generate_expr_nil(ast_expr* e) {
 	get_lib()->generate_expr_nil(e, Body);
 }
 
+void gm_charm_gen::generate_sent_return(ast_return *r) {
+}
+
 void gm_charm_gen::generate_sent_reduce_assign(ast_assign *a) {
 	if (is_master_generate()) {
 		// [to be done]
