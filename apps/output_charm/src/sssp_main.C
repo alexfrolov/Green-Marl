@@ -37,7 +37,7 @@ bool verify = true;
 
 class Main : public CBase_Main {
 	public:
-		Main(CkArgMsg *m) {
+		Main(CkArgMsg *m) : totaltime(0) {
 			parse_options(m, &opts);
 			main_proxy = thishandle;
 			CkPrintf("Hello.\n");
@@ -50,14 +50,17 @@ class Main : public CBase_Main {
 		void do_sssp() {
 			srandom(123);
 			root = random() % opts.N;
+			starttime = CkWallTimer();
 			master_proxy.do_sssp(root);
 		}
 		void done() {
 			CkPrintf("sssp done.\n");
+			totaltime += CkWallTimer() - starttime;
+			CkPrintf("[Final] CPU time used = %.6f seconds\n", totaltime);
 			if (verify) {
 				CkPrintf("start verification...\n");
 				vertex_proxy.verify();
-				vertex_proxy.print();
+				//vertex_proxy.print();
 				CkStartQD(CkCallback(CkIndex_Main::exit(), thisProxy));
 			} else
 				CkExit();
@@ -69,5 +72,6 @@ class Main : public CBase_Main {
 	private:
 		Options opts;
 		CmiUInt8 root;
+		double starttime, totaltime;
 };
 #include "sssp_main.def.h"
