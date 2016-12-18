@@ -37,33 +37,49 @@ bool verify = true;
 
 class Main : public CBase_Main {
 	public:
-		Main(CkArgMsg *m) : totaltime(0) {
+		Main(CkArgMsg *m) : totaltime(0), source_counter(0)  {
 			parse_options(m, &opts);
 			main_proxy = thishandle;
 			CkPrintf("Hello.\n");
 			vertex_proxy = CProxy_sssp_vertex::ckNew(opts.N);
 			master_proxy = CProxy_sssp_master::ckNew(CkCallback(CkIndex_Main::done(), thisProxy));
-			//graphlib::create_rmat_graph<sssp_graph>(sssp_graph(vertex_proxy), opts.rmat_cfg);
-			graphlib::create_random_graph<sssp_graph>(sssp_graph(vertex_proxy), opts.random_cfg);
+			if (opts.graph_type == RMAT)
+				graphlib::create_rmat_graph<sssp_graph>(sssp_graph(vertex_proxy), opts.rmat_cfg);
+			else if (opts.graph_type == Random)
+				graphlib::create_random_graph<sssp_graph>(sssp_graph(vertex_proxy), opts.random_cfg);
+			else
+				CkAbort("Unexpected graph type");
+
+			srandom(123);
 			CkStartQD(CkCallback(CkIndex_Main::do_sssp(), thisProxy));
 		}
 		void do_sssp() {
-			srandom(123);
 			root = random() % opts.N;
+			CkPrintf("root = %lld\n", root);
 			starttime = CkWallTimer();
 			master_proxy.do_sssp(root);
 		}
 		void done() {
 			CkPrintf("sssp done.\n");
 			totaltime += CkWallTimer() - starttime;
-			CkPrintf("[Final] CPU time used = %.6f seconds\n", totaltime);
-			if (verify) {
-				CkPrintf("start verification...\n");
-				vertex_proxy.verify();
-				//vertex_proxy.print();
-				CkStartQD(CkCallback(CkIndex_Main::exit(), thisProxy));
-			} else
-				CkExit();
+			if (source_counter++ < opts.nsources) {
+				vertex_proxy.count_visited(CkCallback(CkReductionTarget(Main, report_visited), thisProxy));
+				CkStartQD(CkCallback(CkIndex_Main::do_sssp(), thisProxy));
+			}
+		  else {
+				CkPrintf("[Final] CPU time used = %.6f seconds\n", totaltime / source_counter);
+				if (verify) {
+					CkPrintf("start verification...\n");
+					vertex_proxy.verify();
+					vertex_proxy.count_visited(CkCallback(CkReductionTarget(Main, report_visited), thisProxy));
+					//vertex_proxy.print();
+					CkStartQD(CkCallback(CkIndex_Main::exit(), thisProxy));
+				} else
+					CkExit();
+			}
+		}
+		void report_visited(CmiUInt8 tot) {
+			CkPrintf("visited vertices = %lld\n", tot);
 		}
 		void exit() {
 			CkPrintf("done.\n");
@@ -73,5 +89,6 @@ class Main : public CBase_Main {
 		Options opts;
 		CmiUInt8 root;
 		double starttime, totaltime;
+		int source_counter;
 };
 #include "sssp_main.def.h"

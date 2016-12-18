@@ -2,6 +2,7 @@ GM_TOP= /home/frolo/wdir/Green-Marl.mine
 GM_GRAPH= ${GM_TOP}/apps/output_charm/gm_graph
 BINDIR = ../bin
 GENDIR = ../generated
+REFDIR = ../refs
 CC= g++
 CFLAGS = -g -I${GM_GRAPH} -I${GM_GRAPH}/graph500 -I${GENDIR} -DHOOK_ENABLE -I. 
 LFLAGS = -L${GM_GRAPH} -lgm_graph -L${BOOST_ROOT}/lib -lboost_system -lboost_timer -lboost_chrono
@@ -11,6 +12,8 @@ include ${GM_TOP}/setup.mk
 .SUFFIXES: .decl.h .def.h .xi .ci
 
 all: ${BINDIR}/sssp ${BINDIR}/avg_teen_cnt
+
+refs: ${REFDIR}/sssp
 
 ${BINDIR}/% : %_main.o 
 	${CHARMC} $^ ${LFLAGS} -o $@
@@ -23,6 +26,12 @@ ${BINDIR}/% : %_main.o
 
 %_main.o : %_main.C %_main.decl.h ${GENDIR}/%.decl.h
 	${CHARMC} $< ${CFLAGS} -o $@
+
+${REFDIR}/% : %_main_ref.o 
+	${CHARMC} $^ ${LFLAGS} -o $@
+
+%_main_ref.o : %_main.C %_main.decl.h ${REFDIR}/%.decl.h
+	${CHARMC} $< -I${REFDIR} ${CFLAGS} -o $@
 
 #%.o : %.C %.decl.h 
 #	${CHARMC} $< ${CFLAGS} -o $@
@@ -38,5 +47,6 @@ ${BINDIR}/% : %_main.o
 
 clean:
 	rm -f charmrun ${BINDIR}/*
+	rm -f ${REFDIR}/sssp
 	rm -f *.o *.xi *.decl.h *.def.h
 	rm -f ${GENDIR}/*.o ${GENDIR}/*.xi ${GENDIR}/*.decl.h ${GENDIR}/*.def.h

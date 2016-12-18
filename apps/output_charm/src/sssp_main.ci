@@ -7,6 +7,7 @@ mainmodule sssp_main {
 		entry Main(CkArgMsg *m);
 		entry void do_sssp();
 		entry void done();
+		entry [reductiontarget] void report_visited(CmiUInt8 tot);
 		entry void exit();
 	};
 

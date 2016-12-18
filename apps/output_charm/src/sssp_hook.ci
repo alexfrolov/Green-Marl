@@ -1,3 +1,4 @@
 entry void verify();
 entry void check(int dist);
+entry void count_visited(const CkCallback &cb);
 entry void print();
