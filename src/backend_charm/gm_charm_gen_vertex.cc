@@ -203,6 +203,8 @@ void gm_charm_gen::generate_vertex_entry_methods_aux() {
 	sprintf(temp, "void add_edge(const %s_edge &e) { edges.push_back(e); } ", 
 			proc->get_procname()->get_genname());
 	Body.pushln(temp);
+	sprintf(temp, "int getNeighborsSize() { return edges.size(); } ");
+	Body.pushln(temp);
 }
 
 void gm_charm_gen::generate_vertex_entry_methods() {
