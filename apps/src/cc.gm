@@ -1,0 +1,29 @@
+// Coloring CC algorithm (for undirected graphs) 
+// Is the Same algorithm used for WCC?
+Procedure cc (G:Graph, CC: N_P<Node>) {
+	Bool fin = False;
+	N_P<Bool> updated;
+	N_P<Bool> updated_next;
+
+	Foreach (i: G.Nodes) {
+		i.CC = i;
+		i.updated = True;
+		i.updated_next = False;
+	}
+	
+	While (!fin) {
+		fin = True;
+		Foreach (i: G.Nodes)(i.updated) {
+			Foreach (j: i.Nbrs)
+				If (i.CC < j.CC) {
+					j.CC = i.CC; 
+					j.updated_next = True;
+					//fin = False;
+				}
+		}
+		G.updated = G.updated_next;
+		G.updated_next = False;		
+
+		fin = ! Exist(n: G.Nodes){n.updated};
+	}
+}
