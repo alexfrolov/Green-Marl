@@ -229,7 +229,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
     //virtual void generate_sent_while(ast_while *w) { assert(false); }
     //virtual void generate_sent_block(ast_sentblock *b, bool need_brace = true) { assert(false); }
     //virtual void generate_sent_return(ast_return *b) { assert(false); }
-    //virtual void generate_sent_call(ast_call *c) { assert(false); }
+    virtual void generate_sent_call(ast_call *c);
     //virtual void generate_sent_foreign(ast_foreign *f) { assert(false); }
 
 		virtual void generate_expr_inf(ast_expr *e);

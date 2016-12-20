@@ -305,8 +305,18 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 }
 
 void gm_charm_lib::generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Body, bool is_master) {
+
+	/*if (e->driver_is_field()) {
+		assert(false);
+		//generate_expr_builtin_field((ast_expr_builtin_field*) e, Body);
+		return;
+	}*/
+
+	//ast_id* i = e->get_driver(); // driver
+	ast_field* driver = ((ast_expr_builtin_field*)e)->get_field_driver();
 	gm_builtin_def* def = e->get_builtin_def();
 	std::list<ast_expr*>& ARGS = e->get_args();
+	char temp[1024];
 
 	switch (def->get_method_id()) {
 		case GM_BLTIN_TOP_DRAND:         // rand function
@@ -338,6 +348,12 @@ void gm_charm_lib::generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Bo
 			Body.push(".");
 			Body.push(GPS_REV_NODE_ID);
 			Body.push(".length");
+			break;
+		case GM_BLTIN_SET_ADD:
+			sprintf(temp, "this->props.%s.%s(", driver->get_second()->get_genname(), "push_back");
+			Body.push(temp);
+			get_main()->generate_expr(ARGS.front());
+			Body.push(")");
 			break;
 
 		default:

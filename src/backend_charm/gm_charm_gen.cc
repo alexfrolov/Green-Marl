@@ -58,6 +58,16 @@ const char* gm_charm_gen::get_type_string(int gm_type) {
 			//	return "int";
 			//else
 				return "long";
+		case GMTYPE_NSEQ:
+			//if (get_lib()->is_node_type_int())
+			//	return "int";
+			//else
+				return "std::vector<long>";
+		case GMTYPE_NSET:
+			//if (get_lib()->is_node_type_int())
+			//	return "int";
+			//else
+				return "std::vector<long>";
 		default:
 			assert(false);
 			return "ERROR";
@@ -462,17 +472,22 @@ void gm_charm_gen::generate_sent_foreach(ast_foreach* fe) {
 			int base_type = f->get_second()->getTypeInfo()->get_target_type()->is_node_collection() ? GMTYPE_NODE : GMTYPE_EDGE;
 			const char* unbox_name = get_unbox_method_string(base_type);
 
-			sprintf(temp, "for (%s %s : _this.%s) {",
-					get_box_type_string(base_type),
-					iterator_name, 
-					f->get_second()->get_genname());
+			sprintf(temp, "typedef std::vector<long>::iterator Iterator;");
 			Body.pushln(temp);
 
-			sprintf(temp,"%s %s = %s.%s();",
+			sprintf(temp, "for (Iterator %s = this->props.%s.begin(); %s != this->props.%s.end(); %s++) {",
+					//get_box_type_string(base_type),
+					iterator_name, 
+					f->get_second()->get_genname(),
+					iterator_name, 
+					f->get_second()->get_genname(),
+					iterator_name);
+			Body.pushln(temp);
+
+			sprintf(temp,"%s %s = *%s;",
 					get_type_string(base_type), 
 					fe->get_iterator()->get_genname(), 
-					iterator_name, 
-					unbox_name);
+					iterator_name);
 			Body.pushln(temp);
 
 			generate_sent(fe->get_body());
@@ -482,7 +497,7 @@ void gm_charm_gen::generate_sent_foreach(ast_foreach* fe) {
 		{
 			bool need_close_block;
 			printf("get_lib()->generate_benign_feloop_header(fe, need_close_block, Body);\n");
-			assert(false);
+			//assert(false);
 
 			generate_sent(fe->get_body());
 			if (need_close_block)
@@ -662,6 +677,14 @@ void gm_charm_gen::generate_expr_inf(ast_expr *e) {
     _Body.push(temp);
     return;
 }
+
+void gm_charm_gen::generate_sent_call(ast_call *c)
+{
+    ast_expr_builtin *b = c->get_builtin();
+    get_lib()->generate_expr_builtin(b, Body, false);
+    Body.pushln(";");
+}
+
 
 void gm_charm_gen::analyse_symbols(ast_procdef* proc) { 
 	assert(false);
