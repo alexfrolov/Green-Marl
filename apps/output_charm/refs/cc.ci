@@ -1,0 +1,18 @@
+module cc {
+    readonly CProxy_cc_master master_proxy;
+    readonly CProxy_cc_vertex vertex_proxy;
+    chare cc_master {
+        entry cc_master(const CkCallback & cb);
+        entry [threaded] void do_cc();
+    }; // cc_master
+    array [1D] cc_vertex {
+        entry cc_vertex();
+        entry void add_edge(const cc_edge &e);
+				entry void init();
+				entry void start();
+				entry void update(const CmiUInt8 & cc); 
+        #ifdef HOOK_ENABLE
+           #include "cc_hook.ci"
+        #endif
+    }; // cc_vertex
+}; // cc

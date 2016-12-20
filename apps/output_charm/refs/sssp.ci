@@ -1,0 +1,18 @@
+module sssp {
+    readonly CProxy_sssp_master master_proxy;
+    readonly CProxy_sssp_vertex vertex_proxy;
+    chare sssp_master {
+        entry sssp_master(const CkCallback & cb);
+        entry [threaded] void do_sssp(long root);
+    }; // sssp_master
+    array [1D] sssp_vertex {
+        entry sssp_vertex();
+        entry void add_edge(const sssp_edge &e);
+				entry void init();
+				entry void make_root();
+				entry void update(const int & l, const CmiUInt8 & p); 
+        #ifdef HOOK_ENABLE
+           #include "sssp_hook.ci"
+        #endif
+    }; // sssp_vertex
+}; // sssp
