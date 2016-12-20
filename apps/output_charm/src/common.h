@@ -14,6 +14,7 @@ struct Options {
 	uint64_t N;
 	uint64_t M;
 	bool strongscale;
+	bool directed;
 
 	Options() {
 		// default values
@@ -26,6 +27,7 @@ struct Options {
 		strongscale = true;
 		graph_type = RMAT;
 		nsources = 10;
+		directed = true;
 	}
 };
 
@@ -49,6 +51,12 @@ void parse_options(CkArgMsg *m, Options *opts) {
 		}
 		if (!strcmp(argv[i], "--weakscale") || !strcmp(argv[i], "--weak")) {
 			opts->strongscale = false;
+		}
+		if (!strcmp(argv[i], "--directed")) {
+			opts->directed = true;
+		}
+		if (!strcmp(argv[i], "--undirected")) {
+			opts->directed = false;
 		}
 		/*if (!strcmp(argv[i], "--verify") || !strcmp(argv[i], "-v")) {
 			opts->verify = true;
@@ -78,6 +86,8 @@ void parse_options(CkArgMsg *m, Options *opts) {
 	opts->random_cfg.scale = opts->scale;
 	opts->rmat_cfg.K = opts->K;
 	opts->random_cfg.K = opts->K;
+	opts->rmat_cfg.directed = opts->directed;
+	opts->random_cfg.directed = opts->directed;
 
 	//while(opts->freeze) {}
 }

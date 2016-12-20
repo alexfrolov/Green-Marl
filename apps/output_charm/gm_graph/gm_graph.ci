@@ -3,13 +3,13 @@ module gm_graph {
 		template <typename Graph>
 		group rmat_generator {
 			entry rmat_generator();
-			entry rmat_generator(Graph & g, rmat_config & cfg, bool strongscale);
+			entry rmat_generator(Graph & g, rmat_config & cfg, bool strongscale, bool directed);
 			entry void generate();
 		};
 		template <typename Graph>
 		group random_generator {
 			entry random_generator();
-			entry random_generator(Graph & g, random_config & cfg, bool strongscale);
+			entry random_generator(Graph & g, random_config & cfg, bool strongscale, bool directed);
 			entry void generate();
 		};
 	}

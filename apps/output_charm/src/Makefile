@@ -11,7 +11,7 @@ include ${GM_TOP}/setup.mk
 .SUFFIXES: 
 .SUFFIXES: .decl.h .def.h .xi .ci
 
-all: ${BINDIR}/sssp ${BINDIR}/avg_teen_cnt
+all: ${BINDIR}/sssp ${BINDIR}/cc ${BINDIR}/avg_teen_cnt
 
 refs: ${REFDIR}/sssp
 
