@@ -67,6 +67,7 @@ class gm_charm_lib : public gm_graph_library {
 
     virtual void generate_message_receive_end(gm_code_writer& Body, bool is_only_comm);
 
+    virtual void generate_expr_builtin_field(ast_expr_builtin_field* e, gm_code_writer& Body);
     virtual void generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Body, bool is_master);
 
 		virtual char *generate_vertex_entry_method_name(gm_gps_basic_block *b);
