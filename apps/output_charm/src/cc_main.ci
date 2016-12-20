@@ -1,0 +1,16 @@
+mainmodule cc_main {
+	extern module cc;
+	extern module gm_graph;
+	readonly CProxy_Main main_proxy;
+
+	mainchare Main {
+		entry Main(CkArgMsg *m);
+		entry void do_cc();
+		entry void done();
+		entry void exit();
+	};
+
+	//FIXME:charmxi bug
+	group graphlib__rmat_generator<cc_graph>;
+	group graphlib__random_generator<cc_graph>;
+};

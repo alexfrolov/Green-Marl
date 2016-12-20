@@ -1,0 +1,3 @@
+entry void verify();
+entry void check(CmiUInt8 cc);
+entry void print();
