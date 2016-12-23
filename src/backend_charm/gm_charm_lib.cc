@@ -360,7 +360,7 @@ void gm_charm_lib::generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Bo
 
 		case GM_BLTIN_GRAPH_NUM_NODES:
 			//Body.push("/*please check*/");
-			Body.push("getGraphSize()");
+			Body.push("vertex_number");
 			break;
 		case GM_BLTIN_NODE_DEGREE:
 			//Body.push("/*please check*/");

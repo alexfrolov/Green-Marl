@@ -317,7 +317,9 @@ void gm_charm_gen::generate_expr_minmax(ast_expr* e) {
 	assert(false);
 }
 void gm_charm_gen::generate_expr_abs(ast_expr* e) {
-	assert(false);
+	Body.push(" std::abs(");
+	generate_expr(e->get_left_op());
+	Body.push(") ");
 }
 void gm_charm_gen::generate_expr_nil(ast_expr* e) {
 	get_lib()->generate_expr_nil(e, Body);
@@ -613,12 +615,14 @@ void gm_charm_gen::generate_readonly_vars() {
 	Body.pushln(temp);
 	sprintf(temp, "CProxy_%s_vertex vertex_proxy;", proc->get_procname()->get_genname());
 	Body.pushln(temp);
+	Body.pushln("CmiUInt8 vertex_number;");
 	Body.NL();
 
 	sprintf(temp, "readonly CProxy_%s_master master_proxy;", proc->get_procname()->get_genname());
 	Body_ci.pushln(temp);
 	sprintf(temp, "readonly CProxy_%s_vertex vertex_proxy;", proc->get_procname()->get_genname());
 	Body_ci.pushln(temp);
+	Body.pushln("readonly CmiUInt8 vertex_number;");
 	Body_ci.NL();
 }
 
