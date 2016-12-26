@@ -1,0 +1,3 @@
+entry void verify();
+entry void check(int dist);
+entry void print();

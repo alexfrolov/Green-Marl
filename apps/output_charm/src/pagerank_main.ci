@@ -1,0 +1,16 @@
+mainmodule pagerank_main {
+	extern module pagerank;
+	extern module gm_graph;
+	readonly CProxy_Main main_proxy;
+
+	mainchare Main {
+		entry Main(CkArgMsg *m);
+		entry void do_pagerank();
+		entry void done();
+		entry void exit();
+	};
+
+	//FIXME:charmxi bug
+	group graphlib__rmat_generator<pagerank_graph>;
+	group graphlib__random_generator<pagerank_graph>;
+};
