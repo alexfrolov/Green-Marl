@@ -237,6 +237,9 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 		generate_vertex_entry_method_args_recv(b, true);
 		Body.pushln("delete msg;");
 
+		// add stack variables (only for inner loops)
+		generate_vertex_scalar_with_scope(b, GPS_SCOPE_INNER);
+
 		set_receiver_generate(true); 
 
 		std::list<gm_gps_comm_unit>& R = b->get_receivers();
@@ -313,6 +316,7 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	else {
 		sprintf(temp, "void %s () {", entry_name);
 		Body.pushln(temp);
+		//generate_vertex_entry_method_args_scala(b, true);
 	}
 
 	// Generate stack variables
@@ -320,7 +324,8 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 		generate_vertex_entry_method_args_recv(b, false);
 
 	// add a local copy of scalar variables stack (will be used as a source for reduction)
-	generate_vertex_scalar(b);
+	generate_vertex_scalar_with_scope(b, GPS_SCOPE_GLOBAL);
+	generate_vertex_scalar_with_scope(b, GPS_SCOPE_OUTER);
 
 	assert(type == GM_GPS_BBTYPE_BEGIN_VERTEX);
 	bool is_conditional = b->find_info_bool(GPS_FLAG_IS_INTRA_MERGED_CONDITIONAL);
@@ -370,8 +375,10 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	delete [] entry_name;
 }
 
-void gm_charm_gen::generate_vertex_scalar(gm_gps_basic_block *b) {
+void gm_charm_gen::generate_vertex_scalar_with_scope(gm_gps_basic_block *b, int scope) {
 	char temp[1024];
+
+	bool with_comm_sym = false;
 
 	// load scalar variable
 	std::map<gm_symtab_entry*, gps_syminfo*>& symbols = b->get_symbols();
@@ -387,7 +394,7 @@ void gm_charm_gen::generate_vertex_scalar(gm_gps_basic_block *b) {
 
 		if (sym->getType()->is_node_iterator()) {
 			// do nothing
-		} else if (global_info->is_scoped_global()) {
+		} else if (global_info->get_scope() == scope && (with_comm_sym || !find_communication_symbol_info(b, sym))) {
 			if (local_info->is_used_as_lhs() || local_info->is_used_as_reduce()) {
 				generate_scalar_var_def(sym, false);
 				Body.pushln(";");
@@ -399,6 +406,7 @@ void gm_charm_gen::generate_vertex_scalar(gm_gps_basic_block *b) {
 }
 
 void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b, bool with_assign) {
+	char temp[1024];
 	// load scalar variable
 	std::map<gm_symtab_entry*, gps_syminfo*>& symbols = b->get_symbols();
 	std::map<gm_symtab_entry*, gps_syminfo*>::iterator I;
@@ -406,6 +414,7 @@ void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b
 	for (I = symbols.begin(); I != symbols.end(); I++) {
 		gm_symtab_entry* sym = I->first;
 		gps_syminfo* local_info = I->second;
+
 		if (!local_info->is_scalar()) continue;
 
 		gps_syminfo* global_info = (gps_syminfo*) sym->find_info(GPS_TAG_BB_USAGE);
@@ -422,7 +431,8 @@ void gm_charm_gen::generate_vertex_entry_method_args_scala(gm_gps_basic_block *b
 				}
 				Body.pushln(";");
 			} else {
-				//printf("omitting  %s\n", sym->getId()->get_genname());
+				//sprintf(temp, "omitting  %s\n", sym->getId()->get_genname());
+				//Body.push(temp);
 			}
 		} 
 	}
@@ -474,6 +484,22 @@ void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b,
 			assert(false);
 		}
 	}
+}
+
+gm_gps_communication_symbol_info *gm_charm_gen::find_communication_symbol_info(gm_gps_basic_block *b, gm_symtab_entry *e) {
+	if (!b->has_receiver())
+		return NULL;
+
+	int cnt = 0;
+	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
+	std::list<gm_gps_comm_unit>& R = b->get_receivers();
+	std::list<gm_gps_comm_unit>::iterator I;
+	for (I = R.begin(); I != R.end(); I++) {
+		gm_gps_comm_unit U = *I;
+		if (gm_gps_communication_symbol_info *S = info->find_communication_symbol_info(U, e))
+			return S;
+	}
+	return NULL;
 }
 
 void gm_charm_gen::generate_edge_properties_type() {

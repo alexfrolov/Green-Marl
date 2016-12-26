@@ -1,6 +1,5 @@
 module gm_graph {
 	namespace graphlib {
-		readonly CmiUInt8 nvertex;
 		template <typename Graph>
 		group rmat_generator {
 			entry rmat_generator();

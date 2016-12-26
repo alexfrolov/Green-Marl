@@ -167,12 +167,13 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_vertex_entry_method(gm_gps_basic_block *b);
 		virtual void generate_vertex_entry_method_args_scala(gm_gps_basic_block *b, bool with_assign);
 		virtual void generate_vertex_entry_method_args_recv(gm_gps_basic_block *b, bool with_assign);
+		virtual gm_gps_communication_symbol_info * find_communication_symbol_info(gm_gps_basic_block *b, gm_symtab_entry *e);
 		virtual void generate_vertex_default_ctor_decl(char *name);
 		virtual void generate_vertex_default_ctor_def(char *name);
 		virtual void generate_vertex_properties_type();
 		virtual void generate_edge_properties_type();
 		virtual void generate_vertex_all_properties();
-		virtual void generate_vertex_scalar(gm_gps_basic_block *b);
+		virtual void generate_vertex_scalar_with_scope(gm_gps_basic_block *b, int scope);
 
 		virtual void begin_module(char *name, bool is_mainmodule);
 		virtual void end_module(char *name);
