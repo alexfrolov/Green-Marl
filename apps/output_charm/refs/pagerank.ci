@@ -1,0 +1,21 @@
+module pagerank {
+    readonly CProxy_pagerank_master master_proxy;
+    readonly CProxy_pagerank_vertex vertex_proxy;
+		readonly CmiUInt8 vertex_number;
+    chare pagerank_master {
+        entry pagerank_master(const CkCallback & cb);
+        entry [threaded] void do_pagerank(int cnt, double e, double d);
+				entry [reductiontarget] void reduction_diff(double d);
+    }; // pagerank_master
+    array [1D] pagerank_vertex {
+        entry pagerank_vertex();
+        entry void add_edge(const pagerank_edge &e);
+				entry void init(const double & d);
+				entry void do_pagerank_step_update();
+				entry void do_pagerank_step_complete(const double & d);
+				entry void update(const double & d);
+        #ifdef HOOK_ENABLE
+           #include "pagerank_hook.ci"
+        #endif
+    }; // pagerank_vertex
+}; // pagerank

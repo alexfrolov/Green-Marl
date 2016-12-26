@@ -37,7 +37,7 @@ bool verify = true;
 
 class Main : public CBase_Main {
 	public:
-		Main(CkArgMsg *m) : totaltime(0), source_counter(0)  {
+		Main(CkArgMsg *m) : totaltime(0)  {
 			parse_options(m, &opts);
 			main_proxy = thishandle;
 			CkPrintf("Hello.\n");
@@ -61,7 +61,7 @@ class Main : public CBase_Main {
 		void done() {
 			CkPrintf("pagerank done.\n");
 			totaltime += CkWallTimer() - starttime;
-			CkPrintf("[Final] CPU time used = %.6f seconds\n", totaltime / source_counter);
+			CkPrintf("[Final] CPU time used = %.6f seconds\n", totaltime );
 			if (verify) {
 				CkPrintf("start verification...\n");
 				vertex_proxy.verify();
@@ -80,6 +80,5 @@ class Main : public CBase_Main {
 	private:
 		Options opts;
 		double starttime, totaltime;
-		int source_counter;
 };
 #include "pagerank_main.def.h"

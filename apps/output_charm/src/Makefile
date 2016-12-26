@@ -13,7 +13,7 @@ include ${GM_TOP}/setup.mk
 
 all: ${BINDIR}/sssp ${BINDIR}/cc  ${BINDIR}/pagerank ${BINDIR}/avg_teen_cnt
 
-refs: ${REFDIR}/sssp ${REFDIR}/cc
+refs: ${REFDIR}/sssp ${REFDIR}/cc ${REFDIR}/pagerank
 
 ${BINDIR}/% : %_main.o 
 	${CHARMC} $^ ${LFLAGS} -o $@
@@ -47,6 +47,6 @@ ${REFDIR}/% : %_main_ref.o
 
 clean:
 	rm -f charmrun ${BINDIR}/*
-	rm -f ${REFDIR}/sssp ${REFDIR}/cc
+	rm -f ${REFDIR}/sssp ${REFDIR}/cc ${REFDIR}/pagerank
 	rm -f *.o *.xi *.decl.h *.def.h
 	rm -f ${GENDIR}/*.o ${GENDIR}/*.xi ${GENDIR}/*.decl.h ${GENDIR}/*.def.h
