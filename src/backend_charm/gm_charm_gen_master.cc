@@ -591,6 +591,7 @@ void gm_charm_gen::do_generate_scalar_argument_list(gm_code_writer & Body, bool 
 	assert(args != NULL);
 	std::set<gm_symtab_entry*>& syms = args->get_entries();
 	std::set<gm_symtab_entry*>::iterator I;
+	bool first = true;
 	for (I = syms.begin(); I != syms.end(); I++) {
 		gm_symtab_entry* s = *I;
 
@@ -602,8 +603,12 @@ void gm_charm_gen::do_generate_scalar_argument_list(gm_code_writer & Body, bool 
 			Body.pushln(temp);
 		}
 		else {
+			if (!first) {
+				Body.push(", ");
+			}
 			sprintf(temp, "%s %s", get_type_string(s->getType(), true), s->getId()->get_genname());
 			Body.push(temp);
+			first = false;
 		}
 	}
 }

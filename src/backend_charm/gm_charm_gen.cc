@@ -622,7 +622,7 @@ void gm_charm_gen::generate_readonly_vars() {
 	Body_ci.pushln(temp);
 	sprintf(temp, "readonly CProxy_%s_vertex vertex_proxy;", proc->get_procname()->get_genname());
 	Body_ci.pushln(temp);
-	Body.pushln("readonly CmiUInt8 vertex_number;");
+	Body_ci.pushln("readonly CmiUInt8 vertex_number;");
 	Body_ci.NL();
 }
 

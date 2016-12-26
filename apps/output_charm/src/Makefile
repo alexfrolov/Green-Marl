@@ -11,9 +11,9 @@ include ${GM_TOP}/setup.mk
 .SUFFIXES: 
 .SUFFIXES: .decl.h .def.h .xi .ci
 
-all: ${BINDIR}/sssp ${BINDIR}/cc ${BINDIR}/avg_teen_cnt
+all: ${BINDIR}/sssp ${BINDIR}/cc  ${BINDIR}/pagerank ${BINDIR}/avg_teen_cnt
 
-refs: ${REFDIR}/sssp
+refs: ${REFDIR}/sssp ${REFDIR}/cc
 
 ${BINDIR}/% : %_main.o 
 	${CHARMC} $^ ${LFLAGS} -o $@
@@ -47,6 +47,6 @@ ${REFDIR}/% : %_main_ref.o
 
 clean:
 	rm -f charmrun ${BINDIR}/*
-	rm -f ${REFDIR}/sssp
+	rm -f ${REFDIR}/sssp ${REFDIR}/cc
 	rm -f *.o *.xi *.decl.h *.def.h
 	rm -f ${GENDIR}/*.o ${GENDIR}/*.xi ${GENDIR}/*.decl.h ${GENDIR}/*.def.h
