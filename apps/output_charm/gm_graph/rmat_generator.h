@@ -104,6 +104,8 @@ void create_rmat_graph(const Graph & g, struct rmat_config & cfg) {
 	typedef CProxy_rmat_generator<Graph> CProxy_Generator;
  	CProxy_Generator generator = CProxy_Generator::ckNew(g, cfg, true, cfg.directed);
 	generator.generate();
+	CkPrintf("Generate RMAT: s = %d, k = %d, %s, %s\n",
+			cfg.scale, cfg.K, "strong", cfg.directed ? "directed" : "undirected");
 }
 
 };

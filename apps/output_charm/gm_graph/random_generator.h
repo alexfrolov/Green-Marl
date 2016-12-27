@@ -66,6 +66,8 @@ void create_random_graph(const Graph & g, struct random_config & cfg) {
 	typedef CProxy_random_generator<Graph> CProxy_Generator;
  	CProxy_Generator generator = CProxy_Generator::ckNew(g, cfg, true, cfg.directed);
 	generator.generate();
+	CkPrintf("Generate Random: s = %d, k = %d, %s, %s\n",
+			cfg.scale, cfg.K, "strong", cfg.directed ? "directed" : "undirected");
 }
 
 };
