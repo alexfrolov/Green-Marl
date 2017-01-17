@@ -13,7 +13,7 @@ include ${GM_TOP}/setup.mk
 
 all: ${BINDIR}/sssp ${BINDIR}/cc  ${BINDIR}/pagerank ${BINDIR}/avg_teen_cnt
 
-refs: ${REFDIR}/sssp ${REFDIR}/cc ${REFDIR}/pagerank
+refs: ${REFDIR}/sssp ${REFDIR}/cc ${REFDIR}/cc_iter ${REFDIR}/pagerank
 
 ${BINDIR}/% : %_main.o 
 	${CHARMC} $^ ${LFLAGS} -o $@

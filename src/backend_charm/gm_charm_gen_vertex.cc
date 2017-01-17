@@ -117,7 +117,7 @@ void gm_charm_gen::generate_vertex() {
 void gm_charm_gen::generate_vertex_all_properties() {
 	char temp[1024];
   ast_procdef* proc = FE.get_current_proc();
-	sprintf(temp, "std::list<struct %s_edge> edges;", proc->get_procname()->get_genname());
+	sprintf(temp, "std::vector<struct %s_edge> edges;", proc->get_procname()->get_genname());
 	Body.pushln(temp);
 	Body.pushln("struct vertex_properties props;");
 }
