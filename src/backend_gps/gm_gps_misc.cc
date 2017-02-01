@@ -148,7 +148,6 @@ void gps_bb_print_all(gm_gps_basic_block* entry)  // return or of has_changed
 void gps_apply_bb_ast::apply(gm_gps_basic_block* b) {
     _curr = b;
     int type = _curr->get_type();
-    printf("visiting :%d, type %d\n", _curr->get_id(), _curr->get_type());
     if (type == GM_GPS_BBTYPE_SEQ) {
         // traverse sentence block and apply this
         _curr->prepare_iter();

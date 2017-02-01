@@ -166,7 +166,6 @@ public:
         add_receiver(U);
     }
     void add_receiver(gm_gps_comm_unit& u) {
-			printf("add_receiver called\n");
         receivers.push_back(u);
     }
     std::list<gm_gps_comm_unit>& get_receivers() {

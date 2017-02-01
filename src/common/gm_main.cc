@@ -125,13 +125,13 @@ void do_compiler_action_at_stop() {
      }
      */
 
-   // if (OPTIONS.get_arg_bool(GMARGFLAG_REPRODUCE)) {
-        printf("X======================================================\n");
+   if (OPTIONS.get_arg_bool(GMARGFLAG_REPRODUCE)) {
+        printf("======================================================\n");
         FE.reproduce();
-        printf("X======================================================\n");
+        printf("======================================================\n");
         printf("\n");
 
-   // }
+   }
 
     if (OPTIONS.get_arg_bool(GMARGFLAG_PRINTRW)) {
         printf("======================================================\n");
@@ -294,7 +294,7 @@ int main(int argc, char** argv) {
     }
     gm_end_major_compiler_stage();
 
-        FE.reproduce();
+        //FE.reproduce();
 
     return EXIT_SUCCESS;
 }

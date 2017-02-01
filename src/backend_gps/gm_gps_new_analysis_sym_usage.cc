@@ -209,12 +209,12 @@ protected:
 
         syminfo->add_usage_in_BB(get_curr_BB()->get_id(), usage, context, r_type);
 
-         printf("Add usage : %s for BB : %d, context: %s\n",
+         /*printf("Add usage : %s for BB : %d, context: %s\n",
             i->get_genname(),
             get_curr_BB()->get_id(),
             (context == GPS_CONTEXT_MASTER) ? "master" :
             (context == GPS_CONTEXT_RECEIVER) ? "receiver" : "vertex"
-         );
+         );*/
     }
 
     gps_syminfo* get_or_create_global_syminfo(ast_id *i, bool is_scalar) {

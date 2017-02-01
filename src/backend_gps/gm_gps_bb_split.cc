@@ -98,10 +98,9 @@ void gm_gps_opt_split_comm_ebb::process(ast_procdef* p) {
     gm_gps_beinfo* info = (gm_gps_beinfo*) FE.get_backend_info(p);
     gps_bb* entry = info->get_entry_basic_block();
 
-		printf("=====================================================\n");
-		printf("gm_gps_opt_split_comm_ebb (before)\n");
-
-		gps_bb_print_all(entry);
+		//printf("=====================================================\n");
+		//printf("gm_gps_opt_split_comm_ebb (before)\n");
+		//gps_bb_print_all(entry);
 		//assert(false);
 
     //-------------------------------------------
@@ -124,9 +123,9 @@ void gm_gps_opt_split_comm_ebb::process(ast_procdef* p) {
 
     }*/
 
-		printf("=====================================================\n");
-		printf("gm_gps_opt_split_comm_ebb (after)\n");
-		gps_bb_print_all(entry);
+		//printf("=====================================================\n");
+		//printf("gm_gps_opt_split_comm_ebb (after)\n");
+		//gps_bb_print_all(entry);
 }
 
 //    [prev -> BB -> next] ==>
