@@ -392,7 +392,6 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 	} else if (type == GM_GPS_BBTYPE_IF_COND) {
 
 		Body.pushln(") {");
-		assert(false);
 
 		Body.pushln("/*------");
 		Body.flush();
@@ -400,8 +399,9 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		b->reproduce_sents(); 
 		Body.pushln("-----*/");
 
-		Body.pushln("GM_GPS_BBTYPE_IF_COND");
-		assert(false);
+		Body.pushln("/*****");
+		Body.pushln(" * GM_GPS_BBTYPE_IF_COND");
+		Body.pushln(" *****/");
 
 		Body.push("bool _expression_result = ");
 
@@ -413,9 +413,24 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		generate_expr(i->get_cond());
 		Body.pushln(";");
 
-		sprintf(temp, "if (_expression_result) _master_state_nxt = %d;\nelse _master_state_nxt = %d;", b->get_nth_exit(0)->get_id(),
-				b->get_nth_exit(1)->get_id());
+		assert(b->get_num_exits() == 2);
+
+		char *next_entry_name;
+		Body.pushln("if (_expression_result)");
+		next_entry_name = get_lib()->generate_master_entry_method_name(b->get_nth_exit(0));
+		Body.push_indent();
+		sprintf(temp, "thisProxy.%s();", next_entry_name); 
 		Body.pushln(temp);
+		Body.pop_indent();
+		Body.pushln("else");
+		Body.push_indent();
+		next_entry_name = get_lib()->generate_master_entry_method_name(b->get_nth_exit(1));
+		sprintf(temp, "thisProxy.%s();", next_entry_name); 
+		Body.pushln(temp);
+		Body.pop_indent();
+		//sprintf(temp, "if (_expression_result) _master_state_nxt = %d;\nelse _master_state_nxt = %d;", b->get_nth_exit(0)->get_id(),
+		//		b->get_nth_exit(1)->get_id());
+		//Body.pushln(temp);
 	} else if (type == GM_GPS_BBTYPE_WHILE_COND) {
 
 		Body.pushln(") {");
