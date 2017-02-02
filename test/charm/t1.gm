@@ -1,0 +1,29 @@
+Procedure t1 (G:Graph) {
+
+	N_P<Node> foo;
+	N_P<Node_Seq> SEQ;
+	N_P<Node_Set> SET;
+	//Node_Set s;
+	//s.Add(NIL);
+
+
+	Foreach (o: G.Nodes) {
+		Foreach (i: o.Nbrs) {
+				i.SET.Add(o);
+		}
+	}
+
+	/*Foreach (o: G.Nodes) {
+		Foreach (i: o.Nbrs) {
+			//o.SET.Add(NIL);
+			i.foo = NIL;
+		}
+	}*/
+
+	/*Foreach (o: G.Nodes)
+		For (s: o.SET.Items) {
+			Foreach (i: o.Nbrs) {
+				i.foo = s;
+			}
+		}*/
+}

@@ -1,0 +1,11 @@
+Procedure t2 (G:Graph, x: N_P<Double> ) {
+	Double tmp2 = 0; 
+	Foreach (o: G.Nodes) {
+		Double tmp1 = tmp2 + 1;
+		Foreach (i: o.Nbrs) {
+			Double tmp = tmp1;
+			tmp = tmp + 1;
+			i.x = 0;
+		}
+	}
+}

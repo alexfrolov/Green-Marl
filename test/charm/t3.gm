@@ -1,0 +1,4 @@
+Procedure t3 (G:Graph, x: N_P<Double> ) {
+	//Double foo = 0; 
+	Double foo = 0;
+}
