@@ -25,7 +25,7 @@ public:
     gm_giraphlib() {
     }
     gm_giraphlib(gm_giraph_gen* gen) : gm_gpslib( (gm_gps_gen*)gen) {
-        printf("lib this = %p\n", this);
+        //printf("lib this = %p\n", this);
     }
     virtual gm_giraph_gen* get_giraph_main() {
         return (gm_giraph_gen*) get_main();
