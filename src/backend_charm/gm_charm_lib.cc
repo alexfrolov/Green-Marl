@@ -343,16 +343,18 @@ void gm_charm_lib::generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Bo
 
 	switch (def->get_method_id()) {
 		case GM_BLTIN_TOP_DRAND:         // rand function
-			Body.push("(new java.util.Random()).nextDouble()");
+			//assert(false);
+			Body.push("(drand48())");
 			break;
 
 		case GM_BLTIN_TOP_IRAND:         // rand function
-			Body.push("(new java.util.Random()).nextInt(");
+			Body.push("(lrand48() % ");
 			get_main()->generate_expr(ARGS.front());
 			Body.push(")");
 			break;
 
 		case GM_BLTIN_GRAPH_RAND_NODE:         // random node function
+			assert(false);
 			Body.push("(new java.util.Random()).nextInt(");
 			Body.push("getGraphSize()");
 			Body.push(")");
@@ -367,6 +369,7 @@ void gm_charm_lib::generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Bo
 			Body.push("getNeighborsSize()");
 			break;
 		case GM_BLTIN_NODE_IN_DEGREE:
+			assert(false);
 			Body.push(STATE_SHORT_CUT);
 			Body.push(".");
 			Body.push(GPS_REV_NODE_ID);

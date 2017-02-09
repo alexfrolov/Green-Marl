@@ -287,19 +287,19 @@ void gm_charm_gen::generate_expr_builtin(ast_expr* e) {
 			break;
 
 		case GM_BLTIN_TOP_LOG:           // log function
-			Body.push("Math.log(");
+			Body.push("log(");
 			assert(ARGS.front()!=NULL);
 			generate_expr(ARGS.front());
 			Body.push(")");
 			break;
 		case GM_BLTIN_TOP_EXP:           // exp function
-			Body.push("Math.exp(");
+			Body.push("exp(");
 			assert(ARGS.front()!=NULL);
 			generate_expr(ARGS.front());
 			Body.push(")");
 			break;
 		case GM_BLTIN_TOP_POW:           // pow function
-			Body.push("Math.pow(");
+			Body.push("pow(");
 			assert(ARGS.front()!=NULL);
 			generate_expr(ARGS.front());
 			Body.push(",");
@@ -632,7 +632,9 @@ void gm_charm_gen::generate_pre_include_section() {
 	sprintf(temp, "struct %s_edge;", proc->get_procname()->get_genname());
 	Body.pushln(temp);
 
-	Body.pushln("#include <limits>");
+	Body.pushln("#include <limits.h>");
+	Body.pushln("#include <stdlib.h>");
+	Body.pushln("#include <math.h>");
 	sprintf(temp, "#include \"%s.decl.h\"", proc->get_procname()->get_genname());
 	Body.pushln(temp);
 //	Body.pushln("#include \"gm_graph.h\"");
