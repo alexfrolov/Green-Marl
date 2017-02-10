@@ -73,6 +73,7 @@ class gm_charm_lib : public gm_graph_library {
 		virtual char *generate_vertex_entry_method_name(gm_gps_basic_block *b);
 		virtual char *generate_master_entry_method_name(gm_gps_basic_block *b);
 
+		virtual void generate_prepare_bb(gm_code_writer& Body, gm_gps_basic_block *b);
 
 	private:
 		gm_charm_gen *main;

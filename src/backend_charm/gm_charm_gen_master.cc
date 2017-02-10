@@ -474,8 +474,6 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 
 	} else if ((type == GM_GPS_BBTYPE_PREPARE1) || (type == GM_GPS_BBTYPE_PREPARE2)) {
 
-		assert(false);
-
 		Body.pushln(") {");
 
 		Body.pushln("/*------");
@@ -484,19 +482,22 @@ void gm_charm_gen::generate_master_entry_method(gm_gps_basic_block *b) {
 		b->reproduce_sents(); 
 		Body.pushln("-----*/");
 
-		Body.pushln("GM_GPS_BBTYPE_PREPARE1 || GM_GPS_BBTYPE_PREPARE2");
-		assert(false);
+		if (type == GM_GPS_BBTYPE_PREPARE1)
+			do_generate_scalar_broadcast_send(b);
 
 		// generate Broadcast
-		Body.pushln("do_generate_scalar_broadcast_send(b);");
+		//Body.pushln("do_generate_scalar_broadcast_send(b);");
 		//get_lib()->generate_broadcast_state_master("_master_state", Body);
 
 		Body.pushln("// Preparation Step;");
 		assert(b->get_num_exits() == 1);
-		int n = b->get_nth_exit(0)->get_id();
-		sprintf(temp, "_master_state_nxt = %d;", n);
+
+		char *next_entry_name = get_lib()->generate_master_entry_method_name(b->get_nth_exit(0));
+		Body.pushln("// Wait for quiescence detection");
+		sprintf(temp, "CkStartQD(CkIndex_%s_master::%s(), &thishandle);", name, next_entry_name);
 		Body.pushln(temp);
-		Body.pushln("_master_should_start_workers = true;");
+
+
 	} else if (type == GM_GPS_BBTYPE_MERGED_TAIL) {
 
 		assert(false);

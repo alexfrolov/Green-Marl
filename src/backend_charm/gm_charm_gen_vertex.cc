@@ -46,6 +46,15 @@ void gm_charm_gen::generate_vertex_entry_method_decl(gm_gps_basic_block* b, bool
 	char temp[1024];
 	char *entry_name = get_lib()->generate_vertex_entry_method_name(b);
 
+	if (b->is_prepare()) {
+		if (b->get_type() == GM_GPS_BBTYPE_PREPARE1)
+			sprintf(temp, "entry void %s ();", entry_name);
+		else
+			sprintf(temp, "entry void %s (%s_msg *msg);", entry_name, entry_name);
+		Body_ci.pushln(temp);
+		return;
+	}
+
 	if (b->has_receiver()) {
 		sprintf(temp, "entry void %s_recv(%s_recv_msg *msg);", entry_name, entry_name);
 		Body_ci.pushln(temp);
@@ -119,6 +128,8 @@ void gm_charm_gen::generate_vertex_all_properties() {
   ast_procdef* proc = FE.get_current_proc();
 	sprintf(temp, "std::vector<struct %s_edge> edges;", proc->get_procname()->get_genname());
 	Body.pushln(temp);
+	sprintf(temp, "std::vector<uint64_t> reverse_vertex_ids;", proc->get_procname()->get_genname());
+	Body.pushln(temp);
 	Body.pushln("struct vertex_properties props;");
 }
 
@@ -174,6 +185,19 @@ void gm_charm_gen::generate_vertex_message_def(gm_gps_basic_block *b) {
 		generate_vertex_entry_method_args_scala(b, false);
 		Body.pushln("};");
 	}
+
+	//---------------------------------------------------
+	// generate struct for prepare method
+	//---------------------------------------------------
+	if (b->get_type() == GM_GPS_BBTYPE_PREPARE2) {
+		sprintf(temp, "struct %s_msg : public CMessage_%s_msg {", 
+				entry_name, entry_name);
+		Body.pushln(temp);
+		sprintf(temp, "uint64_t %s;", GPS_DUMMY_ID);
+		Body.pushln(temp);
+		Body.pushln("};");
+	}
+
 	delete [] entry_name;
 }
 
@@ -194,6 +218,15 @@ void gm_charm_gen::generate_vertex_message_decl_ci(gm_gps_basic_block *b) {
 		sprintf(temp, "message %s_msg;", entry_name);
 		Body_ci.pushln(temp);
 	}
+
+	//---------------------------------------------------
+	// generate struct for prepare method
+	//---------------------------------------------------
+	if (b->get_type() == GM_GPS_BBTYPE_PREPARE2) {
+		sprintf(temp, "message %s_msg;", entry_name);
+		Body_ci.pushln(temp);
+	}
+
 	delete [] entry_name;
 }
 
@@ -225,6 +258,23 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	int type = b->get_type();
 	char temp[1024];
 	char *entry_name = get_lib()->generate_vertex_entry_method_name(b);
+
+	//---------------------------------------------------
+	// Generate preparation  entry method
+	//---------------------------------------------------
+
+	if (b->is_prepare()) {
+		if (type == GM_GPS_BBTYPE_PREPARE1)
+			sprintf(temp, "void %s () {", entry_name);
+		else
+			sprintf(temp, "void %s (struct %s_msg *msg) {", entry_name, entry_name);
+
+		Body.pushln(temp);
+		get_lib()->generate_prepare_bb(Body, b);
+		Body.pushln("}");
+		return;
+	}
+
 
 	//---------------------------------------------------
 	// Generate recieve entry method if needed
@@ -328,6 +378,7 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 	generate_vertex_scalar_with_scope(b, GPS_SCOPE_OUTER);
 
 	assert(type == GM_GPS_BBTYPE_BEGIN_VERTEX);
+
 	bool is_conditional = b->find_info_bool(GPS_FLAG_IS_INTRA_MERGED_CONDITIONAL);
 	char cond_var[128];
 	if (is_conditional) sprintf(cond_var, "%s%d", GPS_INTRA_MERGE_IS_FIRST, b->find_info_int(GPS_INT_INTRA_MERGED_CONDITIONAL_NO));

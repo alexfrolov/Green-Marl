@@ -206,7 +206,6 @@ const char* gm_charm_lib::get_message_field_var_name(int gm_type, int idx) {
 void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) {
 	char temp[1024];
 	char str_buf[1024 * 8];
-	gm_gps_basic_block *b = (gm_gps_basic_block *)fe->get_basic_block();
 	gm_gps_beinfo * info = (gm_gps_beinfo *) FE.get_current_backend_info();
 
 	int m_type = (fe == NULL) ? GPS_COMM_INIT : GPS_COMM_NESTED;
@@ -217,7 +216,8 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 
 	gm_gps_communication_size_info& SINFO = *(info->find_communication_size_info(U));
 
-	assert((fe != NULL) && (gm_is_out_nbr_node_iteration(fe->get_iter_type())));
+	//assert((fe != NULL) && (gm_is_out_nbr_node_iteration(fe->get_iter_type())));
+
 	ast_procdef* proc = FE.get_current_proc();
 	sprintf(temp, "typedef std::vector<struct %s_edge>::iterator Iterator;", 
 			proc->get_procname()->get_genname());
@@ -249,10 +249,19 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		}
 	}
 	
-	char *entry_name = generate_vertex_entry_method_name(b);
-	sprintf(temp, "%s_recv_msg *_msg = new %s_recv_msg();", 
-			entry_name, entry_name);
-	Body.pushln(temp);
+	if (fe == NULL) {
+		//FIXME: this is a dirty hack!
+		sprintf(temp, "%s_msg *_msg = new %s_msg();", 
+				"__vertex_ep_bb100001", "__vertex_ep_bb100001");
+		Body.pushln(temp);
+	} else {
+		gm_gps_basic_block *b = (gm_gps_basic_block *)fe->get_basic_block();
+		char *entry_name = generate_vertex_entry_method_name(b);
+		sprintf(temp, "%s_recv_msg *_msg = new %s_recv_msg();", 
+				entry_name, entry_name);
+		Body.pushln(temp);
+		delete [] entry_name;
+	}
 
 	//------------------------------------------------------------
 	// create message variables 
@@ -286,8 +295,18 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 		Body.pushln(";");
 	}
 
-	sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", entry_name);
-	Body.pushln(temp);
+	if (fe == NULL) {
+		//FIXME: this is a dirty hack!
+		sprintf(temp, "thisProxy[_e->v].%s(_msg);", "__vertex_ep_bb100001");
+		Body.pushln(temp);
+	} else {
+		gm_gps_basic_block *b = (gm_gps_basic_block *)fe->get_basic_block();
+		char *entry_name = generate_vertex_entry_method_name(b);
+		sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", entry_name);
+		Body.pushln(temp);
+		delete [] entry_name;
+	}
+
 	if (sents_after_message.size() > 0) {
 		Body.NL();
 		std::list<ast_sent*>::iterator I;
@@ -301,7 +320,6 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 	Body.pushln("}");
 
 	assert(sents_after_message.size() == 0);
-	delete [] entry_name;
 }
 
 void gm_charm_lib::generate_expr_builtin_field(ast_expr_builtin_field* e, gm_code_writer& Body) {
@@ -414,3 +432,24 @@ char *gm_charm_lib::generate_master_entry_method_name(gm_gps_basic_block *b) {
 	sprintf(temp, "__master_ep_bb%d", b->get_id());
 	return gm_strdup(temp);
 }
+
+void gm_charm_lib::generate_prepare_bb(gm_code_writer& Body, gm_gps_basic_block *bb) {
+    char temp[1024];
+
+    if (bb->get_type() == GM_GPS_BBTYPE_PREPARE1) {
+        Body.pushln("// Preperation: creating reverse edges");
+        sprintf(temp, "%s %s = thisIndex;", main->get_type_string(GMTYPE_NODE), GPS_DUMMY_ID);
+        Body.pushln(temp);
+
+        generate_message_send(NULL, Body);
+
+    } else if (bb->get_type() == GM_GPS_BBTYPE_PREPARE2) {
+        Body.pushln("//Preperation creating reverse edges");
+        sprintf(temp, "reverse_vertex_ids.push_back(msg->%s);", GPS_DUMMY_ID);
+        Body.pushln(temp);
+        Body.pushln("delete msg;");
+    } else {
+        assert(false);
+    }
+}
+
