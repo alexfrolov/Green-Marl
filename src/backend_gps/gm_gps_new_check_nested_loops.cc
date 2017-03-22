@@ -175,6 +175,7 @@ public:
 
                 return true;
             }*/
+
             if (fe->is_sequential()) {
                 if (_gen_error) 
                     gm_backend_error(GM_ERROR_GPS_NEED_PARALLEL, s->get_line(), s->get_col(), "");

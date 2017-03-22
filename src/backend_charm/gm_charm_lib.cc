@@ -221,11 +221,92 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 	//assert((fe != NULL) && (gm_is_out_nbr_node_iteration(fe->get_iter_type())));
 
 	ast_procdef* proc = FE.get_current_proc();
-	sprintf(temp, "typedef std::vector<struct %s_edge>::iterator Iterator;", 
-			proc->get_procname()->get_genname());
-	Body.pushln(temp);
-	Body.pushln("for (Iterator _e = edges.begin(); _e != edges.end(); _e++) {");
-	Body.pushln("// Sending messages to each neighbor");
+
+
+	if (fe == NULL) {
+		sprintf(temp, "typedef std::vector<struct %s_edge>::iterator Iterator;", 
+				proc->get_procname()->get_genname());
+		Body.pushln(temp);
+		Body.pushln("for (Iterator _e = edges.begin(); _e != edges.end(); _e++) {");
+		Body.pushln("// Sending messages to each neighbor");
+		sprintf(temp, "%s_msg *_msg = new %s_msg();", 
+				"__vertex_ep_bb100001", "__vertex_ep_bb100001");
+		Body.pushln(temp);
+
+		std::list<gm_gps_communication_symbol_info>::iterator I;
+		for (I = LIST.begin(); I != LIST.end(); I++) {
+			gm_gps_communication_symbol_info& SYM = *I;
+			gm_symtab_entry * e = SYM.symbol;
+			Body.push("_msg->");
+			Body.push(create_key_string(e->getId()));
+			Body.push(" = ");
+			if (e->getType()->is_node_property()) {
+				generate_vertex_prop_access_rhs(e->getId(), Body);
+			} else if (e->getType()->is_edge_property()) {
+				generate_vertex_prop_access_rhs_edge(e->getId(), Body);
+			} else {
+				get_main()->generate_rhs_id(e->getId());
+			}
+			Body.pushln(";");
+		}
+
+		//FIXME: this is a dirty hack!
+		sprintf(temp, "thisProxy[_e->v].%s(_msg);", "__vertex_ep_bb100001");
+		Body.pushln(temp);
+		Body.pushln("}");
+
+		return;
+	}
+
+	if (gm_is_any_neighbor_iteration(fe->get_iter_type())) {
+		//assert(0);
+		sprintf(temp, "typedef std::vector<struct %s_edge>::iterator Iterator;", 
+				proc->get_procname()->get_genname());
+		Body.pushln(temp);
+		Body.pushln("for (Iterator _e = edges.begin(); _e != edges.end(); _e++) {");
+		Body.pushln("// Sending messages to each neighbor");
+
+			const char *iterator_name = "_e";
+			//sprintf(iterator_name, "__%s_iter", fe->get_iterator()->get_genname());
+			//int base_type = f->get_second()->getTypeInfo()->get_target_type()->is_node_collection() ? GMTYPE_NODE : GMTYPE_EDGE;
+			//const char* unbox_name = get_main()->get_unbox_method_string(base_type);
+
+			sprintf(temp,"long %s = %s->v;",
+					fe->get_iterator()->get_genname(), 
+					iterator_name);
+			Body.pushln(temp);
+
+	} else if (gm_is_node_collection_iteration(fe->get_iter_type())) {
+		ast_field * f = fe->get_source_field();
+
+		char iterator_name[256];
+		char temp[2048];
+		sprintf(iterator_name, "__%s_iter", fe->get_iterator()->get_genname());
+		int base_type = f->get_second()->getTypeInfo()->get_target_type()->is_node_collection() ? GMTYPE_NODE : GMTYPE_EDGE;
+		const char* unbox_name = get_main()->get_unbox_method_string(base_type);
+
+		sprintf(temp, "typedef std::vector<long>::iterator Iterator;");
+		Body.pushln(temp);
+
+		sprintf(temp, "for (Iterator %s = this->props.%s.begin(); %s != this->props.%s.end(); %s++) {",
+				//get_box_type_string(base_type),
+				iterator_name, 
+				f->get_second()->get_genname(),
+				iterator_name, 
+				f->get_second()->get_genname(),
+				iterator_name);
+		Body.pushln(temp);
+
+		sprintf(temp,"%s %s = *%s;",
+				get_main()->get_type_string(base_type), 
+				fe->get_iterator()->get_genname(), 
+				iterator_name);
+		Body.pushln(temp);
+
+		//get_main()->generate_sent(fe->get_body());
+		//Body.pushln("}");
+	} else
+		assert(false);
 
 	// check if any edge updates that should be done before message sending
 	std::list<ast_sent*> sents_after_message;
@@ -304,8 +385,12 @@ void gm_charm_lib::generate_message_send(ast_foreach* fe, gm_code_writer& Body) 
 	} else {
 		gm_gps_basic_block *b = (gm_gps_basic_block *)fe->get_basic_block();
 		char *entry_name = generate_vertex_entry_method_name(b);
-		sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", entry_name);
+		//sprintf(temp, "thisProxy[_e->v].%s_recv(_msg);", entry_name);
+		//Body.pushln(temp);
+
+		sprintf(temp, "thisProxy[%s].%s_recv(_msg);", fe->get_iterator()->get_genname(), entry_name);
 		Body.pushln(temp);
+
 		delete [] entry_name;
 	}
 
