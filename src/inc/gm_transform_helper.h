@@ -97,8 +97,6 @@ extern bool gm_is_sentblock_trivial(ast_sentblock* sb, ast_sent* &s);
 
 // get the trivivial sententce of s if s is a trivial sent-block. otherwise returns s itself
 extern ast_sent* gm_get_sentence_if_trivial_sentblock(ast_sent* s);
-
-
 //------------------------------------------------------------
 // Replace every symbol access
 // e.g> source: x , target: _z

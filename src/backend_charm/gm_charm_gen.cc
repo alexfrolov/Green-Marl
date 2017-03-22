@@ -241,7 +241,8 @@ void gm_charm_gen::generate_lhs_field(ast_field *f) {
             } else if (gm_is_out_nbr_node_iteration(iter_type) || gm_is_in_nbr_node_iteration(iter_type)) {
                 get_lib()->generate_vertex_prop_access_lhs(prop, Body);
             } else {
-                assert(false);
+              get_lib()->generate_vertex_prop_access_lhs(prop, Body);
+              //assert(false);
             }
         } else if (f->get_first()->getTypeInfo()->is_edge()) {
             get_lib()->generate_vertex_prop_access_remote_lhs_edge(prop, Body);
@@ -337,8 +338,7 @@ void gm_charm_gen::generate_sent_reduce_assign(ast_assign *a) {
 	if (a->find_info_ptr(GPS_FLAG_SENT_BLOCK_FOR_RANDOM_WRITE_ASSIGN) != NULL) {
 		if (!is_receiver_generate()) {
 			// generate random write messaging
-			printf("get_lib()->generate_message_payload_packing_for_random_write(a, Body);");
-			assert(false);
+			get_lib()->generate_message_payload_packing_for_random_write(a, Body);
 			return;
 		}
 	}
@@ -457,8 +457,8 @@ void gm_charm_gen::generate_sent_foreach(ast_foreach* fe) {
 	Body.pushln("// generate_sent_foreach");
 	if (fe->find_info_bool(GPS_FLAG_IS_INNER_LOOP)) {
 
-		assert(gm_is_out_nbr_node_iteration(fe->get_iter_type()) || 
-				gm_is_in_nbr_node_iteration(fe->get_iter_type())); 
+		//assert(gm_is_out_nbr_node_iteration(fe->get_iter_type()) || 
+		//		gm_is_in_nbr_node_iteration(fe->get_iter_type())); 
 		get_lib()->generate_message_send(fe, Body);
 		//assert(false);
 	}
@@ -535,8 +535,7 @@ void gm_charm_gen::generate_sent_assign(ast_assign *a) {
     if (a->find_info_ptr(GPS_FLAG_SENT_BLOCK_FOR_RANDOM_WRITE_ASSIGN) != NULL) {
         if (!is_receiver_generate()) {
             // generate random write messaging
-            //get_lib()->generate_message_payload_packing_for_random_write(a, Body);
-					assert(false);
+            get_lib()->generate_message_payload_packing_for_random_write(a, Body);
             return;
         }
     }

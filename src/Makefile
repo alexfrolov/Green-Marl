@@ -159,6 +159,7 @@ SRCS2 =\
 			 gm_charm_gen_vertex.cc\
 			 gm_charm_gen_steps.cc\
 			 gm_charm_lib.cc\
+			 gm_charm_lib_random_write.cc\
 			 gm_charm_analyse_symbols.cc\
 			 gm_charm_opt.cc\
 			 gm_charm_gen_aux.cc\

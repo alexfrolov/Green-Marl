@@ -167,12 +167,14 @@ public:
                 return true;
             }
 
-            if (!gm_is_in_nbr_node_iteration(fe->get_iter_type()) && !gm_is_out_nbr_node_iteration(fe->get_iter_type())) {
+						// FIXME:
+            /*if (!gm_is_in_nbr_node_iteration(fe->get_iter_type()) && !gm_is_out_nbr_node_iteration(fe->get_iter_type())) {
                 if (_gen_error) 
                     gm_backend_error(GM_ERROR_GPS_UNSUPPORTED_RANGE_VERTEX, s->get_line(), s->get_col(), "");
                 _error = true;
+
                 return true;
-            }
+            }*/
             if (fe->is_sequential()) {
                 if (_gen_error) 
                     gm_backend_error(GM_ERROR_GPS_NEED_PARALLEL, s->get_line(), s->get_col(), "");

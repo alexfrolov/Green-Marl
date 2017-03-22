@@ -11,7 +11,7 @@ include ${GM_TOP}/setup.mk
 .SUFFIXES: 
 .SUFFIXES: .decl.h .def.h .xi .ci
 
-all: ${BINDIR}/sssp ${BINDIR}/cc  ${BINDIR}/pagerank ${BINDIR}/avg_teen_cnt
+all: ${BINDIR}/sssp ${BINDIR}/cc  ${BINDIR}/pagerank ${BINDIR}/avg_teen_cnt ${BINDIR}/color_scc
 
 refs: ${REFDIR}/sssp ${REFDIR}/cc ${REFDIR}/cc_iter ${REFDIR}/pagerank
 

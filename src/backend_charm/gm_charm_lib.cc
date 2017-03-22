@@ -110,7 +110,9 @@ void gm_charm_lib::generate_vertex_prop_access_lhs_edge(ast_id *id, gm_code_writ
 	Body.push(temp);
 }
 void gm_charm_lib::generate_vertex_prop_access_rhs(ast_id *id, gm_code_writer& Body) {
-assert(false);
+	char temp[1024];
+	sprintf(temp, "%s.%s", "this->props", id->get_genname());
+	Body.push(temp);
 }
 void gm_charm_lib::generate_vertex_prop_access_rhs_edge(ast_id *id, gm_code_writer& Body) {
 assert(false);
@@ -452,4 +454,3 @@ void gm_charm_lib::generate_prepare_bb(gm_code_writer& Body, gm_gps_basic_block 
         assert(false);
     }
 }
-

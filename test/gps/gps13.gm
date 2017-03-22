@@ -1,6 +1,16 @@
 
 Proc gps13(G: Graph, A,B: N_P<Int>(G), root: Node(G))
 {
+    Foreach(n: G.Nodes) {
+			n.A = 0;
+			n.B = 0;
+    }
+    // test of Random Write
+    Foreach(n: G.Nodes) {
+        If (n.A > 0) {
+            n.B += n. A;
+        }
+    }
     // test of Random Write
     Foreach(n: G.Nodes) {
         If (n.A > 0) {

@@ -1,0 +1,5 @@
+1. Add regression tests for charm backend (gps tests can be used)
+2. Add SCC
+2. Add BC
+3. Add support for multiple reference tests
+4. Output parameters and return values? How to use them?

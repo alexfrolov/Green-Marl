@@ -3,7 +3,7 @@ Procedure color_scc (G:Graph, SCC: N_P<Node>) {
 	N_P<Node> color;
 	N_P<Bool> updated;
 	N_P<Bool> updated_next;
-	N_P<Node_Set> pp;
+	N_P<Node_Set> transNbrs;
 
 	Bool fin = False;
 
@@ -14,7 +14,7 @@ Procedure color_scc (G:Graph, SCC: N_P<Node>) {
 		{
 			Foreach (i : G.Nodes) (i.SCC == NIL) {
 				Foreach (j : i.Nbrs) {
-					j.pp.Add(i);
+					j.transNbrs.Add(i);
 				}
 			}
 		}
@@ -22,7 +22,7 @@ Procedure color_scc (G:Graph, SCC: N_P<Node>) {
 		// trim dangling vertices
 		{
 			Foreach (i : G.Nodes) (i.SCC == NIL) {
-				If (i.pp.Size() == 0 || i.OutDegree() == 0) {
+				If (i.transNbrs.Size() == 0 || i.OutDegree() == 0) {
 					i.SCC = i;
 				}
 			}
@@ -67,11 +67,17 @@ Procedure color_scc (G:Graph, SCC: N_P<Node>) {
 				done = True;
 				Foreach (i: G.Nodes) (i.SCC == NIL && i.updated) {
 					i.SCC = i.color;
-					For (j: i.pp.Items) { 
-						Foreach (q: i.Nbrs) (j == q)
+					/*For (j: i.transNbrs.Items) {    
+						Foreach (q: i.Nbrs) (j == q) // ??????
 							If (q.color == i.color) {
 								q.updated_next = True;
 							}
+					}*/
+					Foreach (j: i.transNbrs.Items) {    
+						j.color = i.color;
+						//If (j.color == i.color) {
+						//	j.updated_next = True;
+						//}
 					}
 				}
 				G.updated = G.updated_next;

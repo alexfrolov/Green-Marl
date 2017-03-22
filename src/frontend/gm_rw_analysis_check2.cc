@@ -375,7 +375,7 @@ bool gm_check_conf_t::apply(ast_sent* s) {
 // called from gm_typecheck.cc
 //=========================================================
 void gm_fe_rw_analysis_check2::process(ast_procdef* p) {
-    set_okay(gm_check_parall_conflict_error(p->get_body()));
+    //FIXME: set_okay(gm_check_parall_conflict_error(p->get_body()));
 }
 
 //==================================================================

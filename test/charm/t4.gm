@@ -1,0 +1,25 @@
+// Test of benign loops
+Procedure t4(
+		G : Graph, X,Y: N_P<Int>)
+{
+	Node_Property<Node_Set> SET;
+	Node_Property<Node_Seq> Q;
+
+	Foreach(o: G.Nodes) {
+		Foreach(q: o.Nbrs) {
+			If (q.X < o.Y) {
+				//q.X += o.Y;
+				q.X = o.Y;
+			}
+		}
+	}
+
+	Foreach(o: G.Nodes) {
+		Foreach(q: o.SET.Items) {
+			If (q.X < o.Y) {
+				//q.X += o.Y;
+				q.X = o.Y;
+			}
+		}
+	}
+}

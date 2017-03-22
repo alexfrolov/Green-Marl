@@ -343,7 +343,6 @@ void gm_charm_gen::generate_vertex_entry_method(gm_gps_basic_block *b) {
 				gm_flush_reproduce();
 				Body.pushln("}");
 				Body.pushln("-----*/");
-				assert(false);
 			}
 		}
 
@@ -531,6 +530,38 @@ void gm_charm_gen::generate_vertex_entry_method_args_recv(gm_gps_basic_block *b,
 				Body.pushln(";");
 			}
 
+		} else if (U.get_type() == GPS_COMM_RANDOM_WRITE) {
+
+			ast_sentblock *sb = U.sb; 
+			assert(sb!=NULL);
+
+			std::list<gm_gps_communication_symbol_info>::iterator J;
+			for (J = LIST.begin(); J != LIST.end(); J++) {
+				gm_gps_communication_symbol_info& SYM = *J;
+				gm_symtab_entry * e = SYM.symbol;
+
+				// check it once again later
+				//if (e->getType()->is_property() || e->getType()->is_node_compatible() || 
+				//    e->getType()->is_edge_compatible() || !is_symbol_defined_in_bb(b, e)) {
+				//const char* str = get_type_string(SYM.gm_type);
+				//Body.push(str);
+				//Body.SPC();
+				//}
+				/*if (e->getType()->is_property()) {
+					assert(false);
+					Body.pushln("generate_vertex_prop_access_remote_lhs(e->getId(), Body);");
+				} else {
+					Body.push(e->getId()->get_genname());
+				}*/
+
+				generate_scalar_var_def(e, SYM.gm_type, false);
+				if (with_assign) {
+					Body.push(" = ");
+					get_lib()->generate_broadcast_receive_vertex(e->getId(), Body);
+				}
+				Body.pushln(";");
+			}
+
 		} else {
 			assert(false);
 		}
@@ -618,6 +649,14 @@ void gm_charm_gen::generate_scalar_var_def(gm_symtab_entry* sym, bool finish_sen
     sprintf(temp, "%s %s", get_type_string(sym->getType(), is_master_generate()), sym->getId()->get_genname());
     Body.push(temp);
 
+    if (finish_sent) Body.pushln(";");
+}
+
+void gm_charm_gen::generate_scalar_var_def(gm_symtab_entry* sym, int type, bool finish_sent) {
+    //if (sym->find_info_bool(GPS_FLAG_EDGE_DEFINED_INNER)) return; // skip edge iteration
+    char temp[1024];
+    sprintf(temp, "%s %s", get_type_string(type), sym->getId()->get_genname());
+    Body.push(temp);
     if (finish_sent) Body.pushln(";");
 }
 

@@ -64,8 +64,11 @@ class gm_charm_lib : public gm_graph_library {
     virtual void generate_message_receive_begin(ast_foreach* fe, gm_code_writer& Body, gm_gps_basic_block* b, bool is_only_comm);
     virtual void generate_message_receive_begin(ast_sentblock* sb, gm_symtab_entry* drv, gm_code_writer& Body, gm_gps_basic_block* b, bool is_only_comm);
     virtual void generate_message_receive_begin(gm_gps_comm_unit& U, gm_code_writer& Body, gm_gps_basic_block* b, bool is_only_comm);
-
     virtual void generate_message_receive_end(gm_code_writer& Body, bool is_only_comm);
+
+		// random write
+		const char* get_random_write_message_name(gm_symtab_entry *sym);
+		virtual void generate_message_payload_packing_for_random_write(ast_assign* a, gm_code_writer& Body);
 
     virtual void generate_expr_builtin_field(ast_expr_builtin_field* e, gm_code_writer& Body);
     virtual void generate_expr_builtin(ast_expr_builtin* e, gm_code_writer& Body, bool is_master);
@@ -200,6 +203,7 @@ class gm_charm_gen : public gm_backend, public gm_code_generator {
 		virtual void generate_sent_return(ast_return *r);
 
     virtual void generate_scalar_var_def(gm_symtab_entry* sym, bool finish_sent);
+    virtual void generate_scalar_var_def(gm_symtab_entry* sym, int type, bool finish_sent);
 
     virtual const char* get_type_string(int prim_t); // returned string should be copied before usage.
 		virtual const char* get_type_string(ast_typedecl* T, bool is_master);
