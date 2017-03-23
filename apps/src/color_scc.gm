@@ -7,8 +7,15 @@ Procedure color_scc (G:Graph, SCC: N_P<Node>) {
 
 	Bool fin = False;
 
+	G.SCC = NIL;
+
+
 	While(!fin) {
+
 		fin = True;
+
+		Foreach (i : G.Nodes) (i.SCC == NIL)
+			i.transNbrs.Clear();
 
 		// transpose edgess
 		{

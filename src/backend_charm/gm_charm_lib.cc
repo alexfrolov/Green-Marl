@@ -426,6 +426,10 @@ void gm_charm_lib::generate_expr_builtin_field(ast_expr_builtin_field* e, gm_cod
 			sprintf(temp, "this->props.%s.%s()", driver->get_second()->get_genname(), "size");
 			Body.push(temp);
 			break;
+		case GM_BLTIN_SET_CLEAR:
+			sprintf(temp, "this->props.%s.%s()", driver->get_second()->get_genname(), "clear");
+			Body.push(temp);
+			break;
 		default:
 			Body.push("???");
 			//assert(false);
