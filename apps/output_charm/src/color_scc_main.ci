@@ -1,0 +1,18 @@
+mainmodule color_scc_main {
+	extern module color_scc;
+	extern module gm_graph;
+	readonly CProxy_Main main_proxy;
+	readonly CmiUInt8 N;
+
+	mainchare Main {
+		entry Main(CkArgMsg *m);
+		entry void do_color_scc();
+		entry void done();
+		entry void exit();
+		entry void sccCounter_inc();
+	};
+
+	//FIXME:charmxi bug
+	group graphlib__rmat_generator<color_scc_graph>;
+	group graphlib__random_generator<color_scc_graph>;
+};

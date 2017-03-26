@@ -1,0 +1,26 @@
+module color_scc {
+    readonly CProxy_color_scc_master master_proxy;
+    readonly CProxy_color_scc_vertex vertex_proxy;
+    chare color_scc_master {
+        entry color_scc_master(const CkCallback & cb);
+        entry [threaded] void do_color_scc();
+				entry [reductiontarget] void report_completion(const bool &fin);
+				entry [reductiontarget] void report_completion1(const CmiUInt8 &tot);
+    }; // color_scc_master
+    array [1D] color_scc_vertex {
+        entry color_scc_vertex();
+        entry void add_edge(const color_scc_edge &e);
+				entry void init();
+				entry void transpose();
+				entry void transpose_update(const CmiUInt8 &v);
+				entry void trim();
+				entry void forward();
+				entry void forward_update(const unsigned long &color);
+				entry void backward();
+				entry void backward_update(const unsigned long &color, const CmiUInt8 &src);
+				entry void test_completion();
+        #ifdef HOOK_ENABLE
+           #include "color_scc_hook.ci"
+        #endif
+    }; // color_scc_vertex
+}; // color_scc
