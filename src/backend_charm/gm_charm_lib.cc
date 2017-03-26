@@ -27,7 +27,7 @@ char *create_reduce_op_string(int reduce_op_type, ast_typedecl *type) {
 			assert(false);
 			break;
 		case GMREDUCE_OR:
-			sprintf(temp, "CkReduction::logical_or");
+			sprintf(temp, "CkReduction::logical_or_bool");
 			break;
 		case GMREDUCE_AVG:
 			assert(false);
